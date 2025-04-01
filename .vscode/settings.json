@@ -1,0 +1,26 @@
+{
+    "editor.minimap.enabled": false,
+    "editor.wrappingIndent": "indent",
+    "editor.overviewRulerBorder": false,
+    "editor.lineHeight": 24,
+    "workbench.colorTheme": "GitHub Dark",
+    "[markdown]": {
+      "editor.quickSuggestions": {
+        "comments": "on",
+        "strings": "on",
+        "other": "on"
+      }
+    },
+
+    "noteSync.enableNoteSync": true,
+    "files.autoSave": "afterDelay", //自动保存文件，防止忘记保存文件
+    "files.autoSaveDelay": 1800000, //延迟保存文件1800s
+    "scm.alwaysShowRepositories": true,
+    
+
+   "pasteImage.path": "${projectRoot}/${currentFileNameWithoutExt}",
+   "pasteImage.basePath": "${projectRoot}",
+   "pasteImage.forceUnixStyleSeparator": true,
+   "pasteImage.prefix": "",
+    "notebook.stickyScroll.enabled": true
+  }
