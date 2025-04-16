@@ -424,3 +424,33 @@ double slope = i / j;
 - 若 `type` 为引用类型，结果为左值。
 - `cast - name` 包含 `static_cast`、`dynamic_cast`、`const_cast` 和 `reinterpret_cast` 等。不同 `cast - name` 适用于不同场景，语义和限制条件各异。如 `static_cast` 用于较安全类型转换，像基本数据类型转换、有继承关系类型的上行转换等；`dynamic_cast` 主要用于有继承关系类对象的下行转换，且进行运行时类型检查；`const_cast` 主要用于添加或移除 `const` 属性。 
 
+## 第5章 语句
+
+### 5.1 简单语句
+### 5.2 语句作用域
+### 5.3 条件语句
+#### 5.3.1 if语句
+#### 5.3.2 switch语句
+### 5.4 迭代语句
+#### 5.4.1 while语句
+#### 5.4.2 传统的for语句
+#### 5.4.3 范围for语句
+#### 5.4.4 do while语句
+### 5.5 跳转语句
+#### 5.5.1 break语句
+break语句（break statement）负责终止离它最近的while、do while、for或switch语句，并从这些语句之后的第一条语句开始继续执行。 
+#### 5.5.2 continue语句
+continue语句（continue statement）终止最近循环中的当前迭代并立即开始下一次迭代。它只能出现在for、while和do while循环内部，或嵌套在这类循环里的语句或块内部。在嵌套循环中，continue语句仅作用于离它最近的循环。与break语句不同，只有当switch语句嵌套在迭代语句内部时，才能在switch里使用continue。 
+#### 5.5.3 goto语句
+goto语句（goto statement）是C++语言中唯一的无条件跳转语句。它的作用是将控制权转移到程序中指定的标签处。
+不要用，他使得程序既难以阅读又难以维护。
+
+### 5.6 TRY语句块和异常处理
+#### 5.6.1 throw表达式
+#### 5.6.2 try语句块
+#### 5.6.3 标准异常 
+
+## 第六章 函数
+
+## 第七章 类
+
