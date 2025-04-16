@@ -240,6 +240,15 @@ description: 基础知识
 - **mutable的作用？**
   答：可变的意思，使类中被声明为const的函数可以修改类中的非静态成员.
 
+  ```cpp
+  class A {
+      mutable int a;
+      void func() const {
+          a = 1; // OK
+      }
+  };
+  ```
+
 - **auto和deltype的作用和区别？**
   答：用于实现类型自动推导，让编译器来操心变量的类型；auto不能用于函数传参和推导数组类型，但deltype可以解决这个问题。
 
