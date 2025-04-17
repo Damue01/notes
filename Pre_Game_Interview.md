@@ -543,6 +543,14 @@ C++11标准之后的最佳的选择是Meyers' Singleton（属于懒汉式），�
 
 3）抽象工厂，将产品生产分配给多个工厂，每个工厂可以生产多种产品；
 
+(3) MVC模式
+
+model-view-controller模式，分为三层：
+model层：数据模型层，负责数据的存储和处理；
+view层：视图层，负责数据的展示；
+controller层：控制层，负责业务逻辑的处理；
+整体逻辑为：view层接收用户的输入，调用controller层进行处理，controller层调用model层进行数据的存储和处理，最后将结果返回给view层进行展示。
+
 # 四、操作系统、计算机组成、计算机网络
 
 ## 4.1 操作系统
@@ -612,3 +620,53 @@ C++11标准之后的最佳的选择是Meyers' Singleton（属于懒汉式），�
   （5）TCP有拥塞控制机制，UDP没有。
 
 
+# LUA和其他问题
+
+## 5.1 csv和xlsx的区别？
+
+1）csv是文本文件，可以用记事本打开；xls/xlsx是二进制文件，只有用EXCEL才能打开。
+2）csv文件只能保存活动工作表中单元格所显示的文本和数值，数据中每一列以逗号分隔，每一行都以回车换行符结束。如果单元格中包含逗号，则该单元格中的内容以双引号引起。xls/xlsx文件各个单元格之间的分隔符为Tab。
+3）csv文件可以用记事本打开，进而转为txt格式的文件；xls/xlsx不能直接转为txt格式。若想转换，则需要另存为csv格式，然后再将csv以txt方式打开，点击另存为txt文件。
+
+
+
+### 5.2 pair和ipairs的区别
+
+- `pairs`：遍历表中的所有键值对，包括非整数键（如字符串）。顺序不固定，适用于字典类型的表。
+- `ipairs`：仅遍历整数键（1, 2, 3...）的键值对，顺序固定，适用于数组类型的表。遍历到第一个 `nil` 时停止，不会继续遍历后面的元素。
+
+```lua
+-- 示例代码
+local t = {a = 1, b = 2, c = 3}
+print("使用 pairs 遍历:")
+for k, v in pairs(t) do
+    print(k, v)  -- 输出所有键值对
+end
+
+-- 定义一个数组类型的表
+local array = {10, 20, 30, nil, 50}
+print("使用 ipairs 遍历:")
+for k, v in ipairs(array) do
+    print(k, v)  -- 仅输出整数键的键值对，遇到 nil 停止
+end
+```
+
+### 5.3 :和.的区别
+
+```lua
+-- 用 : 定义的方法会自动接收一个隐式的 self 参数，指向调用该方法的表（对象）本身。
+-- 定义一个表（类似对象）
+local obj = {
+    value = 10
+}
+
+-- 用冒号定义方法（自动添加 self）
+function obj:printValue()
+    print(self.value) -- 通过 self 访问对象的属性
+end
+
+-- 等价于
+function obj.printValue(self)
+    print(self.value)
+end
+```
