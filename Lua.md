@@ -287,8 +287,35 @@ ZeroBraneStudio调试完成后不要直接点他的结束进程，这样子UE端
 ```lua
 -- 示例代码
 local t = {a = 1, b = 2, c = 3}
+print("使用 pairs 遍历:")
 for k, v in pairs(t) do
     print(k, v)  -- 输出所有键值对
 end
 
+-- 定义一个数组类型的表
+local array = {10, 20, 30, nil, 50}
+print("使用 ipairs 遍历:")
+for k, v in ipairs(array) do
+    print(k, v)  -- 仅输出整数键的键值对，遇到 nil 停止
+end
+```
 
+### :和.的区别
+
+```lua
+-- 用 : 定义的方法会自动接收一个隐式的 self 参数，指向调用该方法的表（对象）本身。
+-- 定义一个表（类似对象）
+local obj = {
+    value = 10
+}
+
+-- 用冒号定义方法（自动添加 self）
+function obj:printValue()
+    print(self.value) -- 通过 self 访问对象的属性
+end
+
+-- 等价于
+function obj.printValue(self)
+    print(self.value)
+end
+```
