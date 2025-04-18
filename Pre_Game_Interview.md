@@ -766,3 +766,17 @@ function obj.printValue(self)
     print(self.value)
 end
 ```
+
+
+# UE相关问题
+
+## 6.1 如何防止Actor被自动回收
+
+1. **使用 `UPROPERTY` 标记引用**：将指向 `Actor` 的变量标记为 `UPROPERTY`，通过包含该变量的实例去引用目标 `Actor`，建立强引用关系，使垃圾回收器因该引用存在而不回收目标 `Actor`。
+2. **调用 `AddToRoot` 方法**：在创建 `Actor` 对象后调用 `AddToRoot` 函数，将其添加到垃圾回收的根集，阻止被回收。但需注意，在退出游戏或不再需要该 `Actor` 时，要调用 `RemoveFromRoot` 函数，避免内存泄漏。
+3. **`FStreamableManager` 加载资源设置**：使用 `FStreamableManager` 加载资源时，将 `bManageActiveHandle` 设置为 `true`，在资源加载相关逻辑中起到防止对应 `Actor` 被回收的作用。
+4. **利用 `FGCObjectScopeGuard`**：通过 `FGCObjectScopeGuard` 可在指定的代码区域内保持对象，确保在该区域内 `Actor` 不会被垃圾回收机制处理。
+
+## 6.2 如何优化Tick
+
+1.Tick。这个本身它是必不可少的一个东西，我们能做其实就是减少Tick的频率并且合理设置各个Actor和各个组件的Tick interval，Interval就是每一个Tick的间隔。举个例子我们默认每一个角色其实都是按照一定的固定的Tick在跑，我们面对的角色比如说主角还有一些其他的怪，这些东西有一些可能离我们非常远的，这些离我们比较远的这一些怪物或者人物，我们其实就是可以调节它的Tick的频率，让它以一个比较低的Tick频率去运行从而减少一部分的CPU开销。对不敏感的逻辑可以进行这些分帧的计算，举个例子比如说我们游戏里面UI上有一些红点提示，这些东西它对于这个整个的要求 不要求那么实时，但它的一个计算量很大，本来我们如果把它放在一帧里面去做，那可能这一帧的开销就会比较大，如果我们把它分散到10帧里面去做，主观感受上不会有太大的差异，但是CPU会比较省。
