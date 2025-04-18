@@ -770,12 +770,48 @@ end
 
 # 项目相关问题
 
-## 6.1 如何防止Actor被自动回收
+## 6.1 如何保持新建的UObject对象不被自动GC垃圾回收？
 
-1. **使用 `UPROPERTY` 标记引用**：将指向 `Actor` 的变量标记为 `UPROPERTY`，通过包含该变量的实例去引用目标 `Actor`，建立强引用关系，使垃圾回收器因该引用存在而不回收目标 `Actor`。
-2. **调用 `AddToRoot` 方法**：在创建 `Actor` 对象后调用 `AddToRoot` 函数，将其添加到垃圾回收的根集，阻止被回收。但需注意，在退出游戏或不再需要该 `Actor` 时，要调用 `RemoveFromRoot` 函数，避免内存泄漏。
-3. **`FStreamableManager` 加载资源设置**：使用 `FStreamableManager` 加载资源时，将 `bManageActiveHandle` 设置为 `true`，在资源加载相关逻辑中起到防止对应 `Actor` 被回收的作用。
-4. **利用 `FGCObjectScopeGuard`**：通过 `FGCObjectScopeGuard` 可在指定的代码区域内保持对象，确保在该区域内 `Actor` 不会被垃圾回收机制处理。
+（1）在普通的C++类中新建UObject对象后，使用AddToRoot()函数可以保护对象不被自动回收，移除保护时使用RemoveFromRoot()并把对象指针置为nullptr即可由引擎自动回收；
+
+```cpp
+UMyObject* MyObject=NewObject<UMyObject>();
+MyObject->AddToRoot();                     //保护对象不被回收
+MyObject->RemoveFromRoot();
+MyObject=nullptr;                          //交给引擎回收对象
+```
+
+（2）如果是在继承自UObject类中新建UObject对象后，使用UPROPERTY宏标记一下对象指针变量也可以保护对象不被自动回收，在该类被销毁时，新建的对象也会被引擎自动回收；
+
+```cpp
+UCLASS()
+class UMyObject : public UObject{
+    GENERATED_BODY()
+    UPROPERTY()
+    class UItemObject* ItemObject;
+}
+```
+
+（3）使用FStreamableManager加载资源时，将bManageActiveHandle设置为true也可以防止对象被回收；
+
+```cpp
+FSoftObjectPath AssetPaths(TEXT("[资源路径]"));
+FStreamableManager& AssetLoader = UAssetManager::GetStreamableManager();
+TSharedPtr<FStreamableHandle> Handle = AssetLoader.RequestSyncLoad(AssetPath, true);//加载资源到内存中，bManageActiveHandle=true
+UObject* Obj = Handle->GetLoadedAsset();
+Handle->ReleaseHandle();//从内存中释放资源
+```
+
+（4）FGCObjectScopeGuard在指定代码区域内保持对象；
+
+```cpp
+{
+    FGCObjectScopeGuard(UObject* GladOS = NewObject<...>(...));
+    GladOS->SpawnCell();
+    RunGC();
+    GladOS->IsStillAlive();
+}
+```
 
 ## 6.2 如何优化Tick
 
@@ -827,3 +863,4 @@ DebugActiveProcess 函数：此函数的作用是将调试器附加到一个已�
 当目标进程停止在断点处时，开发者可以在编辑器中对代码进行修改。
 代码修改：开发者可以对源代码进行修改，例如修改变量的初始值、调整函数的逻辑等。
 重新编译和更新：修改完成后，开发者可以选择重新编译修改后的代码。如果是增量编译，编译器会只编译修改过的部分。编译完成后，调试器可以将新的代码更新到目标进程中，然后继续执行程序，观察修改后的效果。
+
