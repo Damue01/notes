@@ -866,3 +866,17 @@ DebugActiveProcess 函数：此函数的作用是将调试器附加到一个已�
 代码修改：开发者可以对源代码进行修改，例如修改变量的初始值、调整函数的逻辑等。
 重新编译和更新：修改完成后，开发者可以选择重新编译修改后的代码。如果是增量编译，编译器会只编译修改过的部分。编译完成后，调试器可以将新的代码更新到目标进程中，然后继续执行程序，观察修改后的效果。
 
+# 引擎相关问题
+
+## 7.1 设计模式
+
+1. MVC模式：Model-View-Controller 模式，将应用程序分为三个部分：模型（数据和业务逻辑）、视图（用户界面）和控制器（处理用户输入和更新模型）。
+   将数据量清晰化了，Model单向传播给View，View单向传播给Controller，Controller单向传播给Model。在做web前端的时候经常用
+2. MVP模型：Model-View-Presenter 模式，相比较于 MVC，少了View和Model的通信，View和Model都直接和Presenter双向通信。Presenter 可以直接访问 Model 和 View。
+    Model（模型）：负责定义数据结构、处理数据逻辑（如数据获取、存储），与业务规则和数据来源（如数据库、网络）交互。
+    View（视图）：仅用于展示数据，接收用户输入（如点击、输入框操作），并将用户事件传递给 Presenter，自身不处理业务逻辑。
+    Presenter（展示器）：作为中间层，连接 Model 和 View。它从 Model 获取数据，进行业务逻辑处理（如数据转换、验证），然后将处理后的数据交给 View 显示；同时接收 View 传递的用户事件，调用 Model 的方法完成相应操作。
+3. MVVM模式：Model-View-ViewModel 模式，主要用于数据绑定和双向数据绑定。ViewModel 作为中间层，处理 View 和 Model 之间的交互。ViewModel 可以直接访问 Model，并通过数据绑定将数据传递给 View。
+    View：使用诸如 Dreamweaver、VS Blend 等所见即所得（WYSIWYG）工具并保存为 html/xaml，MVC 在其 View 类中编码的视图状态不易表示。
+    Binding：将视图数据绑定到模型，视图类中不再有更多代码。
+    ViewModel - 视图的模型：模型很可能具有无法直接映射到控件的数据类型，ViewModel 包含将模型类型转换为视图类型的数据转换器。
