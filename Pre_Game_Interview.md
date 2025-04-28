@@ -880,3 +880,4 @@ DebugActiveProcess 函数：此函数的作用是将调试器附加到一个已�
     View：使用诸如 Dreamweaver、VS Blend 等所见即所得（WYSIWYG）工具并保存为 html/xaml，MVC 在其 View 类中编码的视图状态不易表示。
     Binding：将视图数据绑定到模型，视图类中不再有更多代码。
     ViewModel - 视图的模型：模型很可能具有无法直接映射到控件的数据类型，ViewModel 包含将模型类型转换为视图类型的数据转换器。
+
