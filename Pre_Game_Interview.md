@@ -881,8 +881,14 @@ DebugActiveProcess 函数：此函数的作用是将调试器附加到一个已�
     Binding：将视图数据绑定到模型，视图类中不再有更多代码。
     ViewModel - 视图的模型：模型很可能具有无法直接映射到控件的数据类型，ViewModel 包含将模型类型转换为视图类型的数据转换器。
 
+## 函数回调
 ![raw_mvc](Pre_Game_Interview/2025-04-28-23-36-33.png)
 这个是最原始的mvc图片，我们肯定不能从各种人的定义上去看mvc这个设计模式，因为在不同年代，不同平台和方向的程序员定义的mvc都不一样。
 像我平时用的设计模式，更偏向于mvp或者mvvm，mvp就是我在view上摆放ui组件，然后view和model都和presenter双向通信，也就是我点击一个按钮，按钮将这个事件发送给presenter，presenter请求调用model里的数据，model发送给presenter，presenter处理完再发送给view更新ui组件。
 mvvm呢就是相比较于mvp，viewmodel部分和view双向绑定，理解成view或者viewmodel里有东西改变，就会自动更新到另一个部分。很像我们做ui的时候设置的meta = (BindWidget)吧。做网页的时候就是用observer监听需要的数据。
 但是实际写的时候也会更复杂一点，ui调用了uiwindow里的函数，但是进入这个uiwindow也是通过一个单独的gamemode来配置的
+
+## 数据压缩
+
+## 跨平台
+  大小端问题
