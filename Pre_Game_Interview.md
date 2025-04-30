@@ -938,3 +938,26 @@ MESI，CAS操作
 
 反射就是在代码和工具之间构建了一个桥梁，我的引擎实现了一个功能，他通过一个表告诉我，这个引擎实现了哪些功能，有哪些类和接口，生成了一堆invoke函数，你可以set和get他的变量，等我写工具的时候就很简单。
 UE中就是，蓝图和代码有了一个桥梁，蓝图可以直接调用代码的接口。
+
+如果编译reflection的时候，
+
+这张图片展示了如何使用宏（Macro）为程序添加反射控制，核心内容如下：  
+
+- **通过 `__attribute__` 添加标签**：  
+  - `__attribute__` 是 Clang 提供的源代码注释机制，通过这些宏可捕获代码中所需的数据类型。  
+  - 定义 “CLASS” 宏用于区分预编译和编译阶段：  
+    - 预编译时，在 `meta_parser` 中定义 `_REFOECTION_PARSER_` 宏，使属性信息生效。  
+    - 代码示例中，若定义了 `REFLECTION_PARSER`，`CLASS` 宏会展开为 `class __attribute__((annotate(...))) class_name`，为类添加注释属性；否则，`CLASS` 宏仅展开为普通的类定义 `class class_name`。  
+
+  ```cpp  
+  CLASS(Transform, Fields) {  
+  public:  
+      Vector3 m_position{Vector3::ZERO};  
+      Vector3 m_scale{Vector3::UNIT_SCALE};  
+      Quaternion m_rotation{Quaternion::IDENTITY};  
+  };  
+  ```  
+
+  这里使用 `CLASS` 宏定义 `Transform` 类，包含成员变量 `m_position`、`m_scale`、`m_rotation`。  
+
+Game104里面代码生成是，首先调用CLang声明内存中的schema（schema就是一个数据结构），然后根据提前写好的这些程序的模版，调用mustache（ ）生成代码，这样就能实现我在引擎里面定义任何一个结构，在编辑器里面就能互相看到
