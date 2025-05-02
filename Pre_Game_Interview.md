@@ -1034,4 +1034,15 @@ WorldSpace:程序里边真正的世界空间，以坐标原点为坐标空间，
 7. 引擎里面动画数据更新流程
    1. initialize继承父类初始化，然后针对不同来源的数据做一个poselink的initialize
    2. PreUpdate，预更新动画，PreUpdate()其实就是进行常规赋值操作，我就给角色actortransform设置了一下rootmotion之类
-   3. animbase其实不同于ue原生的那一套复杂的更新逻辑，我们只关注evaluate和update就可以，我在evaluate里面
+   3. animbase其实不同于ue原生的那一套复杂的更新逻辑，我们只关注evaluate和update就可以，
+
+  我实际上，
+  构造/析构：创建和销毁节点实例时会调用构造函数和析构函数。
+  设置动画数据 (setAnim)：通过字节数组或已有对象，反序列化填充内部的 mFaceAnim、mBoneAnim 缓存，并重置 mCurrentTime。
+  评估动画 (evaluate_AnyThread)：每帧或并行线程中根据 mCurrentTime 计算当前骨骼和根运动的插值，将结果写入 Output.Pose。其中会先将整套姿势重置到参考姿势（ResetToRefPose），再对每条轨道进行逐帧差值。
+  更新实例属性 (update)：在动画实例每次 Tick 时，将表情控制通道插值结果通过反射机制写入 UAnimInstance 的属性。
+  Bone是用写入Evaluate的Output.Pose来更新的，表情是写入AnimInstance的具体参数来更新的，这个参数UE也有一个问题，生成引脚的时候直接用float或者double还生成不了，最后是断点调试的时候才发现用的是一个内置类型。
+
+  序列化和反序列化是其他人写的，这部分是在服务器通信，将我写好的动画数据再转成二进制去发送的。
+
+  插值就是先找到当前关键帧数据的下一个关键帧，我保存了帧号，所以知道两帧之间相差了多少帧，然后计算出当前帧在两帧之间的比例，最后用这个比例去插值就可以了。
