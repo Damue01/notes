@@ -165,7 +165,7 @@ Lua 回调层: function(widget, dataObj, userData)
 
 初始化时，函数根据Count创建对应数量的ListViewItemData，填充到ListView里，进入待命状态。（创建出所有行了，但是没有显示）
 只有在列表项滚动到可见区域时，UE才会调用对应的ItemData的回调函数，生成和更新列表现里的内容。（一部分列表现可见，可见的部分去调用绑定的回调函数，参数在创建时候也存入了？）
-CreateListViewItemData(function(widget, dataObj, userData) end, nil);中的function就是回调函数，参数的含义为：
+CreateListViewItemData(function(widget, dataObj, userData) end, nil);中的function就是回调函数
 widget: 列表项的ItemData，每一行是一个Item
 
 这里的additem其实就是将创建出来的itemdata绑定到对应的listiew里，这样子对应的listview里有可见部分时，就知道调用哪个回调函数了
