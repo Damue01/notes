@@ -284,10 +284,12 @@ new所申请的内存区域在C++中称为自由存储区。藉由堆实现的�
 
   （4）static变量在类的声明中不占用内存，因此必须在.cpp文件中定义类静态变量以分配内存。文件域的静态变量和类的静态成员变量在main执行之前的静态初始化过程中分配内存并初始化；局部静态变量在第一次使用时分配内存并初始化。
 
-- **extern的作用?**
+### **extern的作用?**
+
   答：当它与"C"一起连用时，如: extern "C" void fun(int a, int b);则告诉编译器在编译fun这个函数名时按着C的规则去翻译相应的函数名而不是C++的；当它作为一个对函数或者全局变量的外部声明，提示编译器遇到此变量或函数时，在其它模块中寻找其定义。
 
-- **explicit的作用？**
+### **explicit的作用？**
+
   答：标明类的构造函数是显式的，不能进行隐式转换。shared_ptr构造时候用了explicit
   > 隐式类型转换是指在某些情况下，编译器自动将一种数据类型转换为另一种数据类型，而无需程序员显式地指定转换操作。例如，在将一个整数赋值给一个浮点数变量时，编译器会自动进行隐式转换。
   > 显式类型转换是指程序员明确地指定要进行的类型转换操作，例如使用 static_cast、dynamic_cast、const_cast 或 reinterpret_cast 等关键字进行转换。
@@ -296,89 +298,92 @@ new所申请的内存区域在C++中称为自由存储区。藉由堆实现的�
 
 让我们看一个具体的例子，假设 `std::shared_ptr` 的构造函数没有使用 `explicit` 关键字，允许隐式转换：
 
-```cpp
-#include <iostream>
-#include <memory>
+    ```cpp
+    #include <iostream>
+    #include <memory>
 
-class MyClass {
-public:
-    MyClass() { std::cout << "MyClass constructor" << std::endl; }
-    ~MyClass() { std::cout << "MyClass destructor" << std::endl; }
-};
+    class MyClass {
+    public:
+        MyClass() { std::cout << "MyClass constructor" << std::endl; }
+        ~MyClass() { std::cout << "MyClass destructor" << std::endl; }
+    };
 
-void func1(std::shared_ptr<MyClass> ptr) {
-    // 函数逻辑
-}
+    void func1(std::shared_ptr<MyClass> ptr) {
+        // 函数逻辑
+    }
 
-void func2(std::shared_ptr<MyClass> ptr) {
-    // 函数逻辑
-}
+    void func2(std::shared_ptr<MyClass> ptr) {
+        // 函数逻辑
+    }
 
-int main() {
-    MyClass* rawPtr = new MyClass();
-    func1(rawPtr); // 隐式转换，创建一个 std::shared_ptr 管理 rawPtr
-    func2(rawPtr); // 再次隐式转换，创建另一个 std::shared_ptr 管理 rawPtr
-    return 0;
-}
-```
+    int main() {
+        MyClass* rawPtr = new MyClass();
+        func1(rawPtr); // 隐式转换，创建一个 std::shared_ptr 管理 rawPtr
+        func2(rawPtr); // 再次隐式转换，创建另一个 std::shared_ptr 管理 rawPtr
+        return 0;
+    }
+    ```
 
-详细过程
+  详细过程
 
-1. **`main` 函数中**：使用 `new` 操作符创建了一个 `MyClass` 对象，并将其地址赋给原始指针 `rawPtr`。
-2. **调用 `func1` 时**：由于允许隐式转换，`rawPtr` 被隐式转换为 `std::shared_ptr<MyClass>`。这个新创建的 `std::shared_ptr` 会将引用计数初始化为 1，因为它认为自己是唯一管理该对象的智能指针。
-3. **调用 `func2` 时**：同样进行隐式转换，又创建了一个新的 `std::shared_ptr<MyClass>` 来管理 `rawPtr`。这个新的 `std::shared_ptr` 并不知道之前已经有一个 `std::shared_ptr` 在管理该对象，所以它也将引用计数初始化为 1。
-4. **`func1` 和 `func2` 返回时**：各自的 `std::shared_ptr` 超出作用域，引用计数减为 0，它们都会尝试删除所管理的对象。由于它们管理的是同一个原始指针，这就导致对象被重复删除，从而引发未定义行为。
+  1. **`main` 函数中**：使用 `new` 操作符创建了一个 `MyClass` 对象，并将其地址赋给原始指针 `rawPtr`。
+  2. **调用 `func1` 时**：由于允许隐式转换，`rawPtr` 被隐式转换为 `std::shared_ptr<MyClass>`。这个新创建的 `std::shared_ptr` 会将引用计数初始化为 1，因为它认为自己是唯一管理该对象的智能指针。
+  3. **调用 `func2` 时**：同样进行隐式转换，又创建了一个新的 `std::shared_ptr<MyClass>` 来管理 `rawPtr`。这个新的 `std::shared_ptr` 并不知道之前已经有一个 `std::shared_ptr` 在管理该对象，所以它也将引用计数初始化为 1。
+  4. **`func1` 和 `func2` 返回时**：各自的 `std::shared_ptr` 超出作用域，引用计数减为 0，它们都会尝试删除所管理的对象。由于它们管理的是同一个原始指针，这就导致对象被重复删除，从而引发未定义行为。
 
 使用 `explicit` 关键字的好处
 
 当 `std::shared_ptr` 的构造函数使用 `explicit` 关键字时，上述代码会在编译时出错，因为不允许隐式转换。开发者必须显式地构造 `std::shared_ptr`，这样可以避免无意中创建多个独立的 `std::shared_ptr` 管理同一个原始指针，从而保证引用计数机制正常工作，避免重复删除问题。例如：
 
-```cpp
-#include <iostream>
-#include <memory>
+    ```cpp
+    #include <iostream>
+    #include <memory>
 
-class MyClass {
-public:
-    MyClass() { std::cout << "MyClass constructor" << std::endl; }
-    ~MyClass() { std::cout << "MyClass destructor" << std::endl; }
-};
+    class MyClass {
+    public:
+        MyClass() { std::cout << "MyClass constructor" << std::endl; }
+        ~MyClass() { std::cout << "MyClass destructor" << std::endl; }
+    };
 
-void func1(std::shared_ptr<MyClass> ptr) {
-    // 函数逻辑
-}
+    void func1(std::shared_ptr<MyClass> ptr) {
+        // 函数逻辑
+    }
 
-void func2(std::shared_ptr<MyClass> ptr) {
-    // 函数逻辑
-}
+    void func2(std::shared_ptr<MyClass> ptr) {
+        // 函数逻辑
+    }
 
-int main() {
-    std::shared_ptr<MyClass> sharedPtr = std::make_shared<MyClass>();
-    func1(sharedPtr); // 正确传递，引用计数加 1
-    func2(sharedPtr); // 正确传递，引用计数加 1
-    // 当 sharedPtr 以及 func1 和 func2 中的副本都超出作用域时，引用计数减为 0，对象被删除一次
-    return 0;
-}
-```
+    int main() {
+        std::shared_ptr<MyClass> sharedPtr = std::make_shared<MyClass>();
+        func1(sharedPtr); // 正确传递，引用计数加 1
+        func2(sharedPtr); // 正确传递，引用计数加 1
+        // 当 sharedPtr 以及 func1 和 func2 中的副本都超出作用域时，引用计数减为 0，对象被删除一次
+        return 0;
+    }
+    ```
 
 在这个例子中，通过显式构造 `std::shared_ptr`，所有的 `std::shared_ptr` 都共享同一个引用计数，确保对象只被删除一次。
 
-- **constexpr的作用？**
+### **constexpr的作用？**
+
   答：这个关键字明确的告诉编译器应该去验证(函数或变量)在编译期是否就应该是一个常数（这样编译器就可以大胆进行优化）。
 
-- **volatile的作用？**
+### **volatile的作用？**
+
   答：跟编译器优化有关，告诉编译器每次操作该变量时一定要从内存中真正取出，而不是使用已经存在寄存器中的备份。
 
-- **mutable的作用？**
+### **mutable的作用？**
+
   答：可变的意思，使类中被声明为const的函数可以修改类中的非静态成员.
 
-  ```cpp
-  class A {
-      mutable int a;
-      void func() const {
-          a = 1; // OK
-      }
-  };
-  ```
+    ```cpp
+    class A {
+        mutable int a;
+        void func() const {
+            a = 1; // OK
+        }
+    };
+    ```
 
 - **auto和deltype的作用和区别？**
   答：用于实现类型自动推导，让编译器来操心变量的类型；auto不能用于函数传参和推导数组类型，但deltype可以解决这个问题。
