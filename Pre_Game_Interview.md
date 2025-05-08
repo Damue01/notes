@@ -32,7 +32,11 @@ description: 基础知识
 
 ### **lua通过metatable实现多态**
 
-metatable是lua中一个特殊的表，用于实现对象的行为和属性的重载。通过设置metatable，可以定义对象的行为，比如加法、减法等操作符的重载，以及方法的调用等。lua中的多态主要体现在函数和方法的调用上，通过不同的参数类型和数量，可以实现不同的行为。lua中的多态是通过动态类型系统来实现的，不同于C++中的静态类型系统，lua在运行时根据实际传入的参数类型来决定调用哪个函数或方法，从而实现多态性。
+metatable是lua中一个特殊的表，用于实现对象的行为和属性的重载。
+通过设置metatable，可以定义对象的行为，比如加法、减法等操作符的重载，以及方法的调用等。
+lua中的多态主要体现在函数和方法的调用上，通过不同的参数类型和数量，可以实现不同的行为。
+lua中的多态是通过动态类型系统来实现的，不同于C++中的静态类型系统，lua在运行时根据实际传入的参数类型来决定调用哪个函数或方法，从而实现多态性。
+
 
 **类对象的头部存放着一个虚指针，该虚指针指向了各自类所维护的虚函数表，再通过查找虚函数表中的地址来找到对应的虚函数。**
 
@@ -810,6 +814,86 @@ function obj.printValue(self)
     print(self.value)
 end
 ```
+
+## 5.4 Lua使用metatable实现多态
+
+Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不同类的对象在调用相同名称的方法时，可以根据对象的类型执行不同的操作。
+
+`__index` 元方法允许在访问表中不存在的键时，通过元表来查找对应的函数或值。
+
+以下是元表实现方法调用多态的详细过程和示例：
+
+1. **定义基类和元表**：
+   首先定义一个基类表，并设置其元表。基类表中的方法可以被继承，而元表中的 `__index` 元方法则负责在访问不存在的方法时进行查找。
+
+    ```lua
+    -- 定义基类
+    Base = {}
+
+    -- 定义基类的元表
+    Base.mt = {
+        __index = Base
+    }
+
+    -- 基类中的方法
+    function Base:sayHello()
+        print("Hello from Base")
+    end
+
+    -- 设置基类的元表
+    setmetatable(Base, Base.mt)
+    ```
+
+Lua查找一个表元素时的规则，其实就是如下3个步骤：
+
+   首先，在表中查找，如果找到，返回该元素，找不到则继续
+   然后，判断该表中是否有元表，如果没有元表，返回nil，有元表则继续
+   最后，判断元表有没有__index方法，如果__index方法为nil，则返回nil；如果__index方法是一个表，则重复1,2,3；如果__index方法是一个函数，则返回该函数的返回值
+
+2. **创建子类并继承基类**：
+   然后创建子类表，并将基类设置为子类的元表。子类可以重写基类中的方法，并且在调用方法时，Lua 会首先在子类中查找方法，如果找不到则会通过元表的 `__index` 元方法在基类中查找。
+
+    ```lua
+    -- 定义子类
+    Sub = {}
+
+    -- 设置子类的元表为基类
+    setmetatable(Sub, Base)
+
+    -- 子类重写基类的方法
+    function Sub:sayHello()
+        print("Hello from Sub")
+    end
+
+    -- 测试多态
+    local baseObj = Base
+    local subObj = Sub
+
+    baseObj:sayHello()  -- 输出: Hello from Base
+    subObj:sayHello()  -- 输出: Hello from Sub
+    ```
+
+1. **元表的 `__index` 元方法工作原理**：
+   当调用 `subObj:sayHello()` 时，Lua 首先在 `Sub` 表中查找 `sayHello` 方法。由于 `Sub` 表中定义了 `sayHello` 方法，所以调用子类的方法。
+   当调用 `baseObj:sayHello()` 时，Lua 在 `Base` 表中查找 `sayHello` 方法，因为 `Base` 表中定义了 `sayHello` 方法，所以调用基类的方法。
+   如果子类没有定义某个方法，Lua 会通过元表的 `__index` 元方法在基类中查找该方法，从而实现方法的继承和多态。
+
+2. **更复杂的继承和多态示例**：
+   可以有多层继承，并且子类可以调用基类的方法，实现更复杂的多态行为。
+
+    ```lua
+    -- 定义另一个子类，继承自 Sub
+    SubSub = {}
+    setmetatable(SubSub, Sub)
+
+    -- SubSub 调用父类的方法
+    function SubSub:callParentHello()
+        Sub.sayHello(self)
+    end
+
+    local subSubObj = SubSub
+    subSubObj:callParentHello()  -- 输出: Hello from Sub
+    ```
 
 
 # 项目相关问题
