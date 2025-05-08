@@ -844,11 +844,6 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
     setmetatable(Base, Base.mt)
     ```
 
-Lua查找一个表元素时的规则，其实就是如下3个步骤：
-
-   首先，在表中查找，如果找到，返回该元素，找不到则继续
-   然后，判断该表中是否有元表，如果没有元表，返回nil，有元表则继续
-   最后，判断元表有没有__index方法，如果__index方法为nil，则返回nil；如果__index方法是一个表，则重复1,2,3；如果__index方法是一个函数，则返回该函数的返回值
 
 2. **创建子类并继承基类**：
    然后创建子类表，并将基类设置为子类的元表。子类可以重写基类中的方法，并且在调用方法时，Lua 会首先在子类中查找方法，如果找不到则会通过元表的 `__index` 元方法在基类中查找。
@@ -873,27 +868,32 @@ Lua查找一个表元素时的规则，其实就是如下3个步骤：
     subObj:sayHello()  -- 输出: Hello from Sub
     ```
 
-1. **元表的 `__index` 元方法工作原理**：
-   当调用 `subObj:sayHello()` 时，Lua 首先在 `Sub` 表中查找 `sayHello` 方法。由于 `Sub` 表中定义了 `sayHello` 方法，所以调用子类的方法。
-   当调用 `baseObj:sayHello()` 时，Lua 在 `Base` 表中查找 `sayHello` 方法，因为 `Base` 表中定义了 `sayHello` 方法，所以调用基类的方法。
-   如果子类没有定义某个方法，Lua 会通过元表的 `__index` 元方法在基类中查找该方法，从而实现方法的继承和多态。
+**更复杂的继承和多态示例**：
 
-2. **更复杂的继承和多态示例**：
-   可以有多层继承，并且子类可以调用基类的方法，实现更复杂的多态行为。
+  可以有多层继承，并且子类可以调用基类的方法，实现更复杂的多态行为。
+  就是设置metatable的时候，有写父类，调用的时候能直接调用父类的函数
 
-    ```lua
-    -- 定义另一个子类，继承自 Sub
-    SubSub = {}
-    setmetatable(SubSub, Sub)
+  ```lua
+  -- 定义另一个子类，继承自 Sub
+  SubSub = {}
+  setmetatable(SubSub, Sub)
 
-    -- SubSub 调用父类的方法
-    function SubSub:callParentHello()
-        Sub.sayHello(self)
-    end
+  -- SubSub 调用父类的方法
+  function SubSub:callParentHello()
+      Sub.sayHello(self) / sub::sayHello()
+  end
 
-    local subSubObj = SubSub
-    subSubObj:callParentHello()  -- 输出: Hello from Sub
-    ```
+  local subSubObj = SubSub
+  subSubObj:callParentHello()  -- 输出: Hello from Sub
+  ```
+  
+## 5.5 **元表的 `__index` 元方法工作原理**
+
+   首先，在表中查找，如果找到，返回该元素，找不到则继续
+   > 调用 `subObj:sayHello()` 时，Lua 首先在 `Sub` 表中查找 `sayHello` 方法。由于 `Sub` 表中定义了 `sayHello` 方法，所以调用子类的方法。调用 `baseObj:sayHello()` 时，Lua 在 `Base` 表中查找 `sayHello` 方法，因为 `Base` 表中定义了 `sayHello` 方法，所以调用基类的方法。
+   然后，判断该表中是否有元表，如果没有元表，返回nil，有元表则继续
+   最后，判断元表有没有__index方法，如果__index方法为nil，则返回nil；如果__index方法是一个表，则重复1,2,3；如果__index方法是一个函数，则返回该函数的返回值
+
 
 
 # 项目相关问题
