@@ -712,6 +712,7 @@ int[] func() {
 就是和一个空的vector交换，交换后原来的vector就会被销毁，内存也会被释放。
 
 ## 3.4 如何拷贝一段数据
+
 （1）C++语法：std::copy(src.begin(), src.end(), dest.begin())；
 
 std::copy_n(src.begin(), int n, dest.begin())；
@@ -719,12 +720,14 @@ std::copy_n(src.begin(), int n, dest.begin())；
 （2）C风格语法：memcpy(void* dest, const void* src, size_t num)
 
 ## 3.5 对象池思想
+
 【参考资料】：对象池--C++对象池的实现_码农之初心-CSDN博客
 
 对于那些需要频繁创建和销毁的对象，对象池的思想是，首先从对象池中寻找有没有可用的对象，如果没有，就创建对象来使用，然后当一个对象不使用的时候，不是把它删除，而是将它设置为不激活的状态并放入对象池中，等待需要使用的时候再去对象池中寻找，并把它激活。
 
 ## 3.6 设计模式
-（1）单例模式：（⭐⭐）
+
+（1）单例模式：
 
 【参考资料】：C++ 单例模式 - 知乎 (zhihu.com)
 
