@@ -1124,8 +1124,8 @@ DebugActiveProcess 函数：此函数的作用是将调试器附加到一个已�
     View（视图）：仅用于展示数据，接收用户输入（如点击、输入框操作），并将用户事件传递给 Presenter，自身不处理业务逻辑。
     Presenter（展示器）：作为中间层，连接 Model 和 View。它从 Model 获取数据，进行业务逻辑处理（如数据转换、验证），然后将处理后的数据交给 View 显示；同时接收 View 传递的用户事件，调用 Model 的方法完成相应操作。
 3. MVVM模式：Model-View-ViewModel 模式，主要用于数据绑定和双向数据绑定。ViewModel 作为中间层，处理 View 和 Model 之间的交互。
-
   和MVP比较，ViewModel和View变成了绑定，ViewModel和model还是双向通信
+
     View：使用诸如 Dreamweaver、VS Blend 等所见即所得（WYSIWYG）工具并保存为 html/xaml，MVC 在其 View 类中编码的视图状态不易表示。
     Binding：将视图数据绑定到模型，视图类中不再有更多代码。
     ViewModel - 视图的模型：模型很可能具有无法直接映射到控件的数据类型，ViewModel 包含将模型类型转换为视图类型的数据转换器。
