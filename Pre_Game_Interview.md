@@ -616,9 +616,39 @@ int[] func() {
 一个slow指针每次前进一步，一个fast指针每次前进两步，如果有环，他们肯定会碰撞，如果没有环，快指针就直接到链表尾了
 
 如果想要计算出链表中环的位置：
+  假设：
+    - 链表起点到环的入口距离为L
+    - 环入口到相遇点距离为a
+    - 环的长度为c
+  当slow和fast相遇的时候
+    - slow走了L+a步（未绕环或者绕了k圈，即L+kC+a步，推导的时候简化了，因为不影响）
+    - fast走了2(L+a)步，且快指针比满指针多走了n圈，得出公式 2(L+a) = L + a + nC -> L = nC - a
+      得出结论**从起点到环口的距离L，等于从相遇点绕环(n-1)圈后再走(c-a)的距离，即相遇点到环入口距离为c-A
+  所以让slow回到起点，fast留在相遇点，两者同时以每次1步的距离移动，最终会在环入口相遇。
 
+  ```python
+    def detectCycle(head: ListNode) -> ListNode:
+    if not head or not head.next:
+        return None
+    slow, fast = head, head
+    # 第一步：找相遇点
+    while True:
+        if not fast or not fast.next:
+            return None  # 无环
+        slow = slow.next
+        fast = fast.next.next
+        if slow == fast:
+            break
+    # 第二步：找环入口
+    slow = head
+    while slow != fast:
+        slow = slow.next
+        fast = fast.next
+    return slow  # 相遇点即为环入口
+  ```
 
 ## 2.11 capacity和size的区别？
+
 （1）capacity是指容器分配的内存大小，size是指容器中实际存储的元素个数；
 
 # 工程问题
