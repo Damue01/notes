@@ -214,6 +214,8 @@ ZeroBraneStudio调试完成后不要直接点他的结束进程，这样子UE端
 
 #### 初始状态
 
+luaL_newstate后
+
 ```plaintext
 +-------------------+
 | nil               |  <-- 索引 -1
