@@ -961,7 +961,6 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
     setmetatable(Base, Base.mt)
     ```
 
-
 2. **创建子类并继承基类**：
    然后创建子类表，并将基类设置为子类的元表。子类可以重写基类中的方法，并且在调用方法时，Lua 会首先在子类中查找方法，如果找不到则会通过元表的 `__index` 元方法在基类中查找。
 
@@ -1011,7 +1010,51 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
    然后，判断该表中是否有元表，如果没有元表，返回nil，有元表则继续
    最后，判断元表有没有__index方法，如果__index方法为nil，则返回nil；如果__index方法是一个表，则重复1,2,3；如果__index方法是一个函数，则返回该函数的返回值
 
+## 5.6 Lua的调用加载过程
 
+  是自己的一套接入引擎过程
+
+  1. 初始化阶段：
+      创建 Lua 状态机，加载标准库
+
+        ```cpp
+          void CAPI::initialize() {
+            mState = luaL_newstate();          // 创建Lua状态机
+            luaL_openlibs(mState);             // 加载Lua标准库（如math、table等）
+            luaopen_io(mState);                 // 加载IO库（用于文件操作）
+            
+            // 创建全局表IdolAPI，作为UE暴露给Lua的入口
+            lua_createtable(mState, 0, 6);     // 创建表（数组部分大小0，哈希部分大小6）
+            lua_setglobal(mState, "IdolAPI"); 
+          }
+        ```
+
+      注册自定义 API（IdolAPI）到 Lua 全局空间
+
+        ```cpp
+          // 向IdolAPI表中添加函数（Lua中通过IdolAPI.XXX()调用）
+          lua_getglobal(mState, "IdolAPI");   // 获取IdolAPI表
+
+          // 注册 Include 函数（Lua 中调用：IdolAPI.Include(path)）
+          lua_pushstring(mState, "Include");  
+          lua_pushcfunction(mState, luaInclude);  // 绑定C函数luaInclude到"Include"键
+          lua_settable(mState, -3);          // 将键值对存入表（-3表示IdolAPI表的栈位置）
+
+          // 类似地注册Log、DebugLog、Call、Get、Set等函数
+        ```
+
+      通过 UE 反射机制收集所有可暴露的类、函数、属性，生成映射表
+
+        ```cpp
+
+        ```
+
+  2. 交互阶段：
+      Lua→UE：通过IdolAPI.Call/Get/Set调用 C++ 函数 / 属性，C 函数解析 Lua 栈参数，调用 UE 原生逻辑
+      UE→Lua：通过luaDoString执行 Lua 代码，结果通过栈返回
+  3. 资源管理：
+      mCodes缓存 Lua 文件内容，mLoadedCode记录已加载文件
+      析构函数shutdown释放 Lua 状态机及所有缓存数据
 
 # 项目相关问题
 
