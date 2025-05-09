@@ -1046,11 +1046,93 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
       - 通过 UE 反射机制收集所有可暴露的类、函数、属性，生成映射表
 
         ```cpp
+          void NSIdol::NSClient::NSLua::CAPI::initialize() {
+              // 接上文...
 
+              // 反射获取所有 UObject 派生类
+              TArray<UClass*> classes;
+              GetDerivedClasses(UObject::StaticClass(), classes);
+
+              for (UClass* cls : classes) {
+                  // 1. 收集类中的函数（UFunction）
+                  TArray<FName> functions;
+                  // GenerateFunctionList 为自定义反射方法，获取类中可暴露的函数名
+                  reinterpret_cast<UShadow_Class*>(cls)->GenerateFunctionList(functions);
+                  
+                  for (FName funcName : functions) {
+                      UFunction* func = cls->FindFunctionByName(funcName);
+                      if (!func) continue;
+
+                      // 生成唯一函数标识（处理重载：类名.函数名_重载号）
+                      FString tableKey = FString::Printf(
+                          TEXT("%s%s.%s"),
+                          *cls->GetPrefixCPP(),  // 类前缀（如 "A" 表示 Actor 类）
+                          *cls->GetName(),       // 类名
+                          *func->GetName()       // 函数名
+                      );
+                      int overload = 0;
+                      while (mFunctionTable.Contains(tableKey)) {
+                          tableKey = FString::Printf(
+                              TEXT("%s%s.%s_%d"),
+                              *cls->GetPrefixCPP(),
+                              *cls->GetName(),
+                              *func->GetName(),
+                              ++overload
+                          );
+                      }
+
+                      // 记录函数映射关系，并存储指令处理器
+                      mFunctionTable.Add(tableKey, mFunctionInstructions.Num());
+                      new(mFunctionInstructions) CFunctionInstruction(func);  // 封装函数调用逻辑
+                  }
+
+                  // 2. 收集类中的属性（FProperty）
+                  for (TFieldIterator<FProperty> iter(cls); iter; ++iter) {
+                      FProperty* prop = *iter;
+                      FString propKey = FString::Printf(
+                          TEXT("%s%s.%s"),
+                          *cls->GetPrefixCPP(),
+                          *cls->GetName(),
+                          *prop->GetName()
+                      );
+
+                      if (mMemberTable.Contains(propKey)) continue;
+
+                      // 记录属性读写指令索引
+                      mMemberTable.Add(propKey, MemberTableValue{
+                          mMemberReadInstructions.Num(),   // 读指令索引
+                          mMemberWriteInstructions.Num()   // 写指令索引
+                      });
+                      new(mMemberReadInstructions) CMemberReadInstruction(prop);  // 读属性处理器
+                      new(mMemberWriteInstructions) CMemberWriteInstruction(prop);  // 写属性处理器
+                  }
+              }
+          }
         ```
 
   2. 交互阶段：
       Lua→UE：通过IdolAPI.Call/Get/Set调用 C++ 函数 / 属性，C 函数解析 Lua 栈参数，调用 UE 原生逻辑
+
+        ```cpp
+          int NSIdol::NSClient::NSLua::CAPI::luaFunc(lua_State* l) {
+              // 1. 解析 Lua 栈参数：第一个参数为函数名
+              check(lua_isstring(l, 1));
+              FString funcName = lua_tostring(l, 1);
+              lua_remove(l, 1);  // 移除函数名，剩余参数为函数参数+实例
+
+              // 2. 通过映射表找到函数指令
+              auto it = mFunctionTable.Find(funcName);
+              check(it != nullptr);
+              CFunctionInstruction& inst = mFunctionInstructions[*it];
+
+              // 3. 执行函数调用（指令处理器负责参数转换）
+              inst(l);  // 将 Lua 栈参数转换为 UE 函数参数并调用
+
+              // 4. 返回值数量由指令处理器决定
+              return inst.getOutParamCount();
+          }
+        ```
+
       UE→Lua：通过luaDoString执行 Lua 代码，结果通过栈返回
   3. 资源管理：
       mCodes缓存 Lua 文件内容，mLoadedCode记录已加载文件
