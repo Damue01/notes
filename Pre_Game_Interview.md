@@ -1113,7 +1113,7 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
   2. 交互阶段：
       Lua→UE：通过IdolAPI.Call/Get/Set调用 C++ 函数 / 属性，C 函数解析 Lua 栈参数，调用 UE 原生逻辑
 
-        ```cpp
+        ```cpp 调用C++函数 (IdolAPI.Call)
           int NSIdol::NSClient::NSLua::CAPI::luaFunc(lua_State* l) {
               // 1. 解析 Lua 栈参数：第一个参数为函数名
               check(lua_isstring(l, 1));
@@ -1133,9 +1133,7 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
           }
         ```
 
-      UE→Lua：通过luaDoString执行 Lua 代码，结果通过栈返回
-
-      ```cpp
+        ```cpp 读取属性 (IdolAPI.Get/IdolAPI.Set)
         // 获取属性（IdolAPI.Get(propName, inst)）
         int NSIdol::NSClient::NSLua::CAPI::luaPropGet(lua_State* l) {
             check(lua_isstring(l, 1));  // 第一个参数：属性名
@@ -1170,8 +1168,59 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
         }
       ```
 
+      UE→Lua：通过luaDoString执行 Lua 代码，结果通过栈返回
+
+      ```cpp 执行Lua代码
+        bool NSIdol::NSClient::NSLua::CAPI::doLuaCode(const FString& code) {
+            if (!mState) return false;
+            return luaDoString(mState, code, "");  // 调用底层执行函数
+        }
+
+        bool NSIdol::NSClient::NSLua::CAPI::luaDoString(lua_State* l, const FString& code, const char* path) {
+            auto oldStackTop = lua_gettop(l);
+            
+            // 加载并执行代码（包含错误处理）
+            if (LUA_OK != luaL_dostringx(l, TCHAR_TO_UTF8(*code), path)) {
+                FMessageLog("Lua").Error(FText::FromString(lua_tostring(l, -1)));
+                lua_settop(l, oldStackTop);  // 恢复栈状态
+                return false;
+            }
+            
+            lua_settop(l, oldStackTop);  // 清理栈
+            return true;
+        }
+      ```
+
   3. 资源管理：
       mCodes缓存 Lua 文件内容，mLoadedCode记录已加载文件
+
+      ```cpp
+        // 存储结构（头文件声明）
+        TMap<FString, FString> mCodes;          // 路径→代码内容映射
+        TSet<FString> mLoadedCode;              // 已加载的文件路径（避免重复执行）
+
+        // 添加文件内容到缓存（供 luaInclude 使用）
+        void NSIdol::NSClient::NSLua::CAPI::addCode(const FString& path, const FString& code) {
+            mCodes.Add(path, code);
+        }
+
+        // 加载并执行缓存中的文件（Lua 中通过 IdolAPI.Include 调用）
+        int NSIdol::NSClient::NSLua::CAPI::luaInclude(lua_State* l) {
+            check(lua_isstring(l, 1));
+            FString path = lua_tostring(l, 1);
+            lua_pop(l, 1);  // 移除路径参数
+            
+            if (mLoadedCode.Contains(path)) return 0;  // 已加载，直接返回
+            
+            auto it = mCodes.Find(path);
+            if (it) {
+                mLoadedCode.Add(path);
+                luaDoString(l, *it, *path);  // 执行代码
+            }
+            return 0;
+        }
+      ```
+
       析构函数shutdown释放 Lua 状态机及所有缓存数据
 
 # 项目相关问题
