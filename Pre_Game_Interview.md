@@ -531,9 +531,12 @@ int[] func() {
 
 （5）priority_queue，优先队列。是由以vector作为底层容器，以heap作为处理规则，heap的本质是一个完全二叉树。
 
-（6）set和map。底层都是由红黑树实现的。红黑树是一种二叉搜索树，但是它多了一个颜色的属性。红黑树的性质如下：1）每个结点非红即黑；2）根节点是黑的；3）如果一个结点是红色的，那么它的子节点就是黑色的；4）任一结点到树尾端（NULL）的路径上含有的黑色结点个数必须相同。通过以上定义的限制，红黑树确保没有一条路径会比其他路径多出两倍以上；因此，红黑树是一种弱平衡二叉树，相对于严格要求平衡的平衡二叉树来说，它的旋转次数少，所以对于插入、删除操作较多的情况下，通常使用红黑树。
+（6）set和map。底层都是由红黑树实现的。
+    红黑树是一种二叉搜索树（左节点小于根节点，右节点大于根节点，中序遍历（左→根→右）时，会按 从小到大的顺序 访问所有节点），但是它多了一个颜色的属性。
+    红黑树的性质如下：1）每个结点非红即黑；2）根节点是黑的；3）如果一个结点是红色的，那么它的子节点就是黑色的；4）任一结点到树尾端（NULL）的路径上含有的黑色结点个数必须相同。
+    通过以上定义的限制，红黑树确保没有一条路径会比其他路径多出两倍以上；因此，红黑树是一种弱平衡二叉树，相对于严格要求平衡的平衡二叉树来说，它的旋转次数少，所以对于插入、删除操作较多的情况下，通常使用红黑树。
 
-  (7) map和unordered_map。map是基于红黑树实现的，所以自带排序（红黑树基于二叉搜索树，左节点小于根节点，右节点大于根节点）
+  (7) map和unordered_map。map是基于红黑树实现的，所以自带排序（红黑树基于二叉搜索树，左节点小于根节点，右节点大于根节点，中序遍历（左→根→右）时，会按 从小到大的顺序 访问所有节点）,unordered_map是基于哈希表的
 
 补充：平衡二叉树(AVL)和红黑树的区别：AVL 树是高度平衡的，频繁的插入和删除，会引起频繁的rebalance（旋转操作），导致效率下降；红黑树不是高度平衡的，算是一种折中，插入最多两次旋转，删除最多三次旋转。
 
@@ -684,6 +687,10 @@ int[] func() {
   移动位数 = 已匹配的字符数 - 对应的部分匹配值
   > "部分匹配"的实质是，有时候，字符串头部和尾部会有重复。比如，"ABCDAB"之中有两个"AB"，那么它的"部分匹配值"就是2（"AB"的长度）。搜索词移动的时候，第一个"AB"向后移动4位（字符串长度-部分匹配值），就可以来到第二个"AB"的位置。
   ![kmp](Pre_Game_Interview/2025-05-08-10-38-01.png)
+
+## 2.13 map、set的回收（迭代器）
+
+
 
 # 工程问题
 
@@ -940,7 +947,8 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
 
 以下是元表实现方法调用多态的详细过程和示例：
 
-1. **定义基类和元表**：
+### **定义基类和元表**：
+
    首先定义一个基类表，并设置其元表。基类表中的方法可以被继承，而元表中的 `__index` 元方法则负责在访问不存在的方法时进行查找。
 
     ```lua
@@ -961,7 +969,7 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
     setmetatable(Base, Base.mt)
     ```
 
-2. **创建子类并继承基类**：
+### **创建子类并继承基类**：
    然后创建子类表，并将基类设置为子类的元表。子类可以重写基类中的方法，并且在调用方法时，Lua 会首先在子类中查找方法，如果找不到则会通过元表的 `__index` 元方法在基类中查找。
 
     ```lua
@@ -984,7 +992,7 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
     subObj:sayHello()  -- 输出: Hello from Sub
     ```
 
-**更复杂的继承和多态示例**：
+### **更复杂的继承和多态示例**：
 
   可以有多层继承，并且子类可以调用基类的方法，实现更复杂的多态行为。
   就是设置metatable的时候，有写父类，调用的时候能直接调用父类的函数
@@ -1012,222 +1020,249 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
 
 ## 5.6 Lua的调用加载过程
 
-  是自己的一套接入引擎过程
+  是自己的一套接入引擎过程，主要分为初始化阶段和交互阶段
 
-  1. 初始化阶段：
-      - 创建 Lua 状态机，加载标准库
+### 初始化阶段
 
-        ```cpp
-          void CAPI::initialize() {
-            mState = luaL_newstate();          // 创建Lua状态机
-            luaL_openlibs(mState);             // 加载Lua标准库（如math、table等）
-            luaopen_io(mState);                 // 加载IO库（用于文件操作）
+#### 创建 Lua 状态机，加载标准库
+
+  ```cpp
+    void CAPI::initialize() {
+      mState = luaL_newstate();          // 创建Lua状态机
+      luaL_openlibs(mState);             // 加载Lua标准库（如math、table等）
+      luaopen_io(mState);                 // 加载IO库（用于文件操作）
+      
+      // 创建全局表IdolAPI，作为UE暴露给Lua的入口
+      lua_createtable(mState, 0, 6);     // 创建表（数组部分大小0，哈希部分大小6）
+      lua_setglobal(mState, "IdolAPI"); 
+    }
+  ```
+
+#### 注册自定义 API（IdolAPI）到 Lua 全局空间
+
+  ```cpp
+    // 向IdolAPI表中添加函数（Lua中通过IdolAPI.XXX()调用）
+    lua_getglobal(mState, "IdolAPI");   // 获取IdolAPI表
+
+    // 注册 Include 函数（Lua 中调用：IdolAPI.Include(path)）
+    lua_pushstring(mState, "Include");  
+    lua_pushcfunction(mState, luaInclude);  // 绑定C函数luaInclude到"Include"键
+    lua_settable(mState, -3);          // 将键值对存入表（-3表示IdolAPI表的栈位置）
+
+    // 类似地注册Log、DebugLog、Call、Get、Set等函数
+  ```
+
+#### 通过 UE 反射机制收集所有可暴露的类、函数、属性，生成映射表
+
+  ```cpp
+    void NSIdol::NSClient::NSLua::CAPI::initialize() {
+        // 接上文...
+
+        // 反射获取所有 UObject 派生类
+        TArray<UClass*> classes;
+        GetDerivedClasses(UObject::StaticClass(), classes);
+
+        for (UClass* cls : classes) {
+            // 1. 收集类中的函数（UFunction）
+            TArray<FName> functions;
+            // GenerateFunctionList 为自定义反射方法，获取类中可暴露的函数名
+            reinterpret_cast<UShadow_Class*>(cls)->GenerateFunctionList(functions);
             
-            // 创建全局表IdolAPI，作为UE暴露给Lua的入口
-            lua_createtable(mState, 0, 6);     // 创建表（数组部分大小0，哈希部分大小6）
-            lua_setglobal(mState, "IdolAPI"); 
-          }
-        ```
+            for (FName funcName : functions) {
+                UFunction* func = cls->FindFunctionByName(funcName);
+                if (!func) continue;
 
-      - 注册自定义 API（IdolAPI）到 Lua 全局空间
+                // 生成唯一函数标识（处理重载：类名.函数名_重载号）
+                FString tableKey = FString::Printf(
+                    TEXT("%s%s.%s"),
+                    *cls->GetPrefixCPP(),  // 类前缀（如 "A" 表示 Actor 类）
+                    *cls->GetName(),       // 类名
+                    *func->GetName()       // 函数名
+                );
+                int overload = 0;
+                while (mFunctionTable.Contains(tableKey)) {
+                    tableKey = FString::Printf(
+                        TEXT("%s%s.%s_%d"),
+                        *cls->GetPrefixCPP(),
+                        *cls->GetName(),
+                        *func->GetName(),
+                        ++overload
+                    );
+                }
 
-        ```cpp
-          // 向IdolAPI表中添加函数（Lua中通过IdolAPI.XXX()调用）
-          lua_getglobal(mState, "IdolAPI");   // 获取IdolAPI表
-
-          // 注册 Include 函数（Lua 中调用：IdolAPI.Include(path)）
-          lua_pushstring(mState, "Include");  
-          lua_pushcfunction(mState, luaInclude);  // 绑定C函数luaInclude到"Include"键
-          lua_settable(mState, -3);          // 将键值对存入表（-3表示IdolAPI表的栈位置）
-
-          // 类似地注册Log、DebugLog、Call、Get、Set等函数
-        ```
-
-      - 通过 UE 反射机制收集所有可暴露的类、函数、属性，生成映射表
-
-        ```cpp
-          void NSIdol::NSClient::NSLua::CAPI::initialize() {
-              // 接上文...
-
-              // 反射获取所有 UObject 派生类
-              TArray<UClass*> classes;
-              GetDerivedClasses(UObject::StaticClass(), classes);
-
-              for (UClass* cls : classes) {
-                  // 1. 收集类中的函数（UFunction）
-                  TArray<FName> functions;
-                  // GenerateFunctionList 为自定义反射方法，获取类中可暴露的函数名
-                  reinterpret_cast<UShadow_Class*>(cls)->GenerateFunctionList(functions);
-                  
-                  for (FName funcName : functions) {
-                      UFunction* func = cls->FindFunctionByName(funcName);
-                      if (!func) continue;
-
-                      // 生成唯一函数标识（处理重载：类名.函数名_重载号）
-                      FString tableKey = FString::Printf(
-                          TEXT("%s%s.%s"),
-                          *cls->GetPrefixCPP(),  // 类前缀（如 "A" 表示 Actor 类）
-                          *cls->GetName(),       // 类名
-                          *func->GetName()       // 函数名
-                      );
-                      int overload = 0;
-                      while (mFunctionTable.Contains(tableKey)) {
-                          tableKey = FString::Printf(
-                              TEXT("%s%s.%s_%d"),
-                              *cls->GetPrefixCPP(),
-                              *cls->GetName(),
-                              *func->GetName(),
-                              ++overload
-                          );
-                      }
-
-                      // 记录函数映射关系，并存储指令处理器
-                      mFunctionTable.Add(tableKey, mFunctionInstructions.Num());
-                      new(mFunctionInstructions) CFunctionInstruction(func);  // 封装函数调用逻辑
-                  }
-
-                  // 2. 收集类中的属性（FProperty）
-                  for (TFieldIterator<FProperty> iter(cls); iter; ++iter) {
-                      FProperty* prop = *iter;
-                      FString propKey = FString::Printf(
-                          TEXT("%s%s.%s"),
-                          *cls->GetPrefixCPP(),
-                          *cls->GetName(),
-                          *prop->GetName()
-                      );
-
-                      if (mMemberTable.Contains(propKey)) continue;
-
-                      // 记录属性读写指令索引
-                      mMemberTable.Add(propKey, MemberTableValue{
-                          mMemberReadInstructions.Num(),   // 读指令索引
-                          mMemberWriteInstructions.Num()   // 写指令索引
-                      });
-                      new(mMemberReadInstructions) CMemberReadInstruction(prop);  // 读属性处理器
-                      new(mMemberWriteInstructions) CMemberWriteInstruction(prop);  // 写属性处理器
-                  }
-              }
-          }
-        ```
-
-  2. 交互阶段：
-      Lua→UE：通过IdolAPI.Call/Get/Set调用 C++ 函数 / 属性，C 函数解析 Lua 栈参数，调用 UE 原生逻辑
-
-        ```cpp 调用C++函数 (IdolAPI.Call)
-          int NSIdol::NSClient::NSLua::CAPI::luaFunc(lua_State* l) {
-              // 1. 解析 Lua 栈参数：第一个参数为函数名
-              check(lua_isstring(l, 1));
-              FString funcName = lua_tostring(l, 1);
-              lua_remove(l, 1);  // 移除函数名，剩余参数为函数参数+实例
-
-              // 2. 通过映射表找到函数指令
-              auto it = mFunctionTable.Find(funcName);
-              check(it != nullptr);
-              CFunctionInstruction& inst = mFunctionInstructions[*it];
-
-              // 3. 执行函数调用（指令处理器负责参数转换）
-              inst(l);  // 将 Lua 栈参数转换为 UE 函数参数并调用
-
-              // 4. 返回值数量由指令处理器决定
-              return inst.getOutParamCount();
-          }
-        ```
-
-        ```cpp 读取属性 (IdolAPI.Get/IdolAPI.Set)
-        // 获取属性（IdolAPI.Get(propName, inst)）
-        int NSIdol::NSClient::NSLua::CAPI::luaPropGet(lua_State* l) {
-            check(lua_isstring(l, 1));  // 第一个参数：属性名
-            check(lua_isuserdata(l, 2));  // 第二个参数：对象实例（UObject* 包装为 userdata）
-            
-            FString propName = lua_tostring(l, 1);
-            lua_remove(l, 1);  // 移除属性名，栈顶为实例
-            
-            // 查找属性写指令
-            auto it = mMemberTable.Find(propName);
-            check(it != nullptr);
-            CMemberReadInstruction& inst = mMemberReadInstructions[it->mReadIndex];
-            inst(l);  // 读取属性值并压入栈
-            
-            return 1;  // 返回 1 个值（属性值）
-        }
-
-        // 设置属性（IdolAPI.Set(propName, inst, value)）
-        int NSIdol::NSClient::NSLua::CAPI::luaPropSet(lua_State* l) {
-            check(lua_isstring(l, 1));  // 第一个参数：属性名
-            check(lua_isuserdata(l, 2));  // 第二个参数：对象实例
-            
-            FString propName = lua_tostring(l, 1);
-            lua_remove(l, 1);  // 移除属性名，栈顶为实例+新值
-            
-            auto it = mMemberTable.Find(propName);
-            check(it != nullptr);
-            CMemberWriteInstruction& inst = mMemberWriteInstructions[it->mWriteIndex];
-            inst(l);  // 设置属性值
-            
-            return 0;  // 无返回值
-        }
-      ```
-
-      UE→Lua：通过luaDoString执行 Lua 代码，结果通过栈返回
-
-      ```cpp 执行Lua代码
-        bool NSIdol::NSClient::NSLua::CAPI::doLuaCode(const FString& code) {
-            if (!mState) return false;
-            return luaDoString(mState, code, "");  // 调用底层执行函数
-        }
-
-        bool NSIdol::NSClient::NSLua::CAPI::luaDoString(lua_State* l, const FString& code, const char* path) {
-            auto oldStackTop = lua_gettop(l);
-            
-            // 加载并执行代码（包含错误处理）
-            if (LUA_OK != luaL_dostringx(l, TCHAR_TO_UTF8(*code), path)) {
-                FMessageLog("Lua").Error(FText::FromString(lua_tostring(l, -1)));
-                lua_settop(l, oldStackTop);  // 恢复栈状态
-                return false;
+                // 记录函数映射关系，并存储指令处理器
+                mFunctionTable.Add(tableKey, mFunctionInstructions.Num());
+                new(mFunctionInstructions) CFunctionInstruction(func);  // 封装函数调用逻辑
             }
-            
-            lua_settop(l, oldStackTop);  // 清理栈
-            return true;
-        }
-      ```
 
-  3. 资源管理：
-      mCodes缓存 Lua 文件内容，mLoadedCode记录已加载文件
+            // 2. 收集类中的属性（FProperty）
+            for (TFieldIterator<FProperty> iter(cls); iter; ++iter) {
+                FProperty* prop = *iter;
+                FString propKey = FString::Printf(
+                    TEXT("%s%s.%s"),
+                    *cls->GetPrefixCPP(),
+                    *cls->GetName(),
+                    *prop->GetName()
+                );
 
-      ```cpp
-        // 存储结构（头文件声明）
-        TMap<FString, FString> mCodes;          // 路径→代码内容映射
-        TSet<FString> mLoadedCode;              // 已加载的文件路径（避免重复执行）
+                if (mMemberTable.Contains(propKey)) continue;
 
-        // 添加文件内容到缓存（供 luaInclude 使用）
-        void NSIdol::NSClient::NSLua::CAPI::addCode(const FString& path, const FString& code) {
-            mCodes.Add(path, code);
-        }
-
-        // 加载并执行缓存中的文件（Lua 中通过 IdolAPI.Include 调用）
-        int NSIdol::NSClient::NSLua::CAPI::luaInclude(lua_State* l) {
-            check(lua_isstring(l, 1));
-            FString path = lua_tostring(l, 1);
-            lua_pop(l, 1);  // 移除路径参数
-            
-            if (mLoadedCode.Contains(path)) return 0;  // 已加载，直接返回
-            
-            auto it = mCodes.Find(path);
-            if (it) {
-                mLoadedCode.Add(path);
-                luaDoString(l, *it, *path);  // 执行代码
+                // 记录属性读写指令索引
+                mMemberTable.Add(propKey, MemberTableValue{
+                    mMemberReadInstructions.Num(),   // 读指令索引
+                    mMemberWriteInstructions.Num()   // 写指令索引
+                });
+                new(mMemberReadInstructions) CMemberReadInstruction(prop);  // 读属性处理器
+                new(mMemberWriteInstructions) CMemberWriteInstruction(prop);  // 写属性处理器
             }
-            return 0;
         }
-      ```
+    }
+  ```
 
-      析构函数shutdown释放 Lua 状态机及所有缓存数据
+### 交互阶段
+
+#### Lua→UE：通过IdolAPI.Call/Get/Set调用 C++ 函数 / 属性，C 函数解析 Lua 栈参数，调用 UE 原生逻辑
+
+  ```cpp 调用C++函数 (IdolAPI.Call)
+    int NSIdol::NSClient::NSLua::CAPI::luaFunc(lua_State* l) {
+        // 1. 解析 Lua 栈参数：第一个参数为函数名
+        check(lua_isstring(l, 1));
+        FString funcName = lua_tostring(l, 1);
+        lua_remove(l, 1);  // 移除函数名，剩余参数为函数参数+实例
+
+        // 2. 通过映射表找到函数指令
+        auto it = mFunctionTable.Find(funcName);
+        check(it != nullptr);
+        CFunctionInstruction& inst = mFunctionInstructions[*it];
+
+        // 3. 执行函数调用（指令处理器负责参数转换）
+        inst(l);  // 将 Lua 栈参数转换为 UE 函数参数并调用
+
+        // 4. 返回值数量由指令处理器决定
+        return inst.getOutParamCount();
+    }
+  ```
+
+  ```cpp 读取属性 (IdolAPI.Get/IdolAPI.Set)
+  // 获取属性（IdolAPI.Get(propName, inst)）
+  int NSIdol::NSClient::NSLua::CAPI::luaPropGet(lua_State* l) {
+      check(lua_isstring(l, 1));  // 第一个参数：属性名
+      check(lua_isuserdata(l, 2));  // 第二个参数：对象实例（UObject* 包装为 userdata）
+      
+      FString propName = lua_tostring(l, 1);
+      lua_remove(l, 1);  // 移除属性名，栈顶为实例
+      
+      // 查找属性写指令
+      auto it = mMemberTable.Find(propName);
+      check(it != nullptr);
+      CMemberReadInstruction& inst = mMemberReadInstructions[it->mReadIndex];
+      inst(l);  // 读取属性值并压入栈
+      
+      return 1;  // 返回 1 个值（属性值）
+  }
+
+  // 设置属性（IdolAPI.Set(propName, inst, value)）
+  int NSIdol::NSClient::NSLua::CAPI::luaPropSet(lua_State* l) {
+      check(lua_isstring(l, 1));  // 第一个参数：属性名
+      check(lua_isuserdata(l, 2));  // 第二个参数：对象实例
+      
+      FString propName = lua_tostring(l, 1);
+      lua_remove(l, 1);  // 移除属性名，栈顶为实例+新值
+      
+      auto it = mMemberTable.Find(propName);
+      check(it != nullptr);
+      CMemberWriteInstruction& inst = mMemberWriteInstructions[it->mWriteIndex];
+      inst(l);  // 设置属性值
+      
+      return 0;  // 无返回值
+  }
+```
+
+#### UE→Lua：通过luaDoString执行 Lua 代码，结果通过栈返回
+
+```cpp 执行Lua代码
+  bool NSIdol::NSClient::NSLua::CAPI::doLuaCode(const FString& code) {
+      if (!mState) return false;
+      return luaDoString(mState, code, "");  // 调用底层执行函数
+  }
+
+  bool NSIdol::NSClient::NSLua::CAPI::luaDoString(lua_State* l, const FString& code, const char* path) {
+      auto oldStackTop = lua_gettop(l);
+      
+      // 加载并执行代码（包含错误处理）
+      if (LUA_OK != luaL_dostringx(l, TCHAR_TO_UTF8(*code), path)) {
+          FMessageLog("Lua").Error(FText::FromString(lua_tostring(l, -1)));
+          lua_settop(l, oldStackTop);  // 恢复栈状态
+          return false;
+      }
+      
+      lua_settop(l, oldStackTop);  // 清理栈
+      return true;
+  }
+```
+
+### 资源管理
+
+#### mCodes缓存 Lua 文件内容，mLoadedCode记录已加载文件
+
+```cpp
+  // 存储结构（头文件声明）
+  TMap<FString, FString> mCodes;          // 路径→代码内容映射
+  TSet<FString> mLoadedCode;              // 已加载的文件路径（避免重复执行）
+
+  // 添加文件内容到缓存（供 luaInclude 使用）
+  void NSIdol::NSClient::NSLua::CAPI::addCode(const FString& path, const FString& code) {
+      mCodes.Add(path, code);
+  }
+
+  // 加载并执行缓存中的文件（Lua 中通过 IdolAPI.Include 调用）
+  int NSIdol::NSClient::NSLua::CAPI::luaInclude(lua_State* l) {
+      check(lua_isstring(l, 1));
+      FString path = lua_tostring(l, 1);
+      lua_pop(l, 1);  // 移除路径参数
+      
+      if (mLoadedCode.Contains(path)) return 0;  // 已加载，直接返回
+      
+      auto it = mCodes.Find(path);
+      if (it) {
+          mLoadedCode.Add(path);
+          luaDoString(l, *it, *path);  // 执行代码
+      }
+      return 0;
+  }
+```
+
+#### 析构函数shutdown释放 Lua 状态机及所有缓存数据
+
+  ```cpp
+    // 清理 Lua 环境和所有缓存资源
+    void NSIdol::NSClient::NSLua::CAPI::shutdown()
+    {
+        mTables.Empty();           // 清空 Lua 表缓存
+        mVariables.Empty();        // 清空 Lua 变量缓存
+        mFunctionInstructions.Empty();  // 清空函数指令缓存
+        mFunctionTable.Empty();    // 清空函数映射表
+        mMemberReadInstructions.Empty();  // 清空属性读指令
+        mMemberWriteInstructions.Empty();  // 清空属性写指令
+        mMemberTable.Empty();      // 清空属性映射表
+        mCodes.Empty();            // 清空 Lua 代码缓存（由 setAsset 添加）
+        mLoadedCode.Empty();       // 清空已加载文件记录
+
+        if (mState)
+        {
+            lua_close(mState);     // 关闭 Lua 状态机
+            mState = nullptr;
+        }
+    }
+  ```
 
 # 项目相关问题
 
 ## 6.1 如何保持新建的UObject对象不被自动GC垃圾回收？
 
-（1）在普通的C++类中新建UObject对象后，使用AddToRoot()函数可以保护对象不被自动回收，移除保护时使用RemoveFromRoot()并把对象指针置为nullptr即可由引擎自动回收；
+### AddToRoot
+
+在普通的C++类中新建UObject对象后，使用AddToRoot()函数可以保护对象不被自动回收，移除保护时使用RemoveFromRoot()并把对象指针置为nullptr即可由引擎自动回收；
 
 ```cpp
 UMyObject* MyObject=NewObject<UMyObject>();
@@ -1236,7 +1271,9 @@ MyObject->RemoveFromRoot();
 MyObject=nullptr;                          //交给引擎回收对象
 ```
 
-（2）如果是在继承自UObject类中新建UObject对象后，使用UPROPERTY宏标记一下对象指针变量也可以保护对象不被自动回收，在该类被销毁时，新建的对象也会被引擎自动回收；
+### UPROPERTY
+
+如果是在继承自UObject类中新建UObject对象后，使用UPROPERTY宏标记一下对象指针变量也可以保护对象不被自动回收，在该类被销毁时，新建的对象也会被引擎自动回收；
 
 ```cpp
 UCLASS()
@@ -1247,7 +1284,14 @@ class UMyObject : public UObject{
 }
 ```
 
-（3）使用FStreamableManager加载资源时，将bManageActiveHandle设置为true也可以防止对象被回收；
+UPROPERTY 宏的主要功能是：
+  将属性暴露给 UE 的反射系统（Reflection）和编辑器。
+  自动追踪引用关系：让 GC 知道哪些对象之间存在引用关系。
+> 关键点：UPROPERTY 本身不会阻止对象被回收，但它标记的属性会被 GC 视为强引用（Strong Reference）。如果一个对象被至少一个根对象（或其他存活对象）通过 UPROPERTY 强引用，那么它就不会被回收。
+
+### bManageActiveHandle = true
+
+使用FStreamableManager加载资源时，将bManageActiveHandle设置为true也可以防止对象被回收；
 
 ```cpp
 FSoftObjectPath AssetPaths(TEXT("[资源路径]"));
@@ -1257,7 +1301,9 @@ UObject* Obj = Handle->GetLoadedAsset();
 Handle->ReleaseHandle();//从内存中释放资源
 ```
 
-（4）FGCObjectScopeGuard在指定代码区域内保持对象；
+### FGCObjectScopeGuard
+
+FGCObjectScopeGuard在指定代码区域内保持对象；
 
 ```cpp
 {
@@ -1463,9 +1509,35 @@ UE的实现过程是将该动画同时执行十几种压缩算法后的结果都
 
 ## 7.10 UE的GC（垃圾回收）
 
-GC一般分为 分代式GC
+UE 采用即时标记 - 清除（Eager Mark-Sweep）算法，结合UObject 引用管理：
 
-UE用的是即时性GC，用完就回收，适配引擎的高效率
+### GC一般分为 引用计数、标记-清除、标记-压缩、分代回收
+
+| 回收策略     | 描述                                     | 优点                     | 缺点                         |
+|------------|----------------------------------------|------------------------|----------------------------|
+| 引用计数     | 每个对象维护引用计数器，计数为 0 时立即回收。 | 即时回收，低延迟          | 无法处理循环引用，维护开销大       |
+| 标记 - 清除   | 从根集出发标记可达对象，回收未标记对象。       | 解决循环引用问题           | 产生内存碎片，全堆扫描效率低       |
+| 标记 - 压缩   | 标记可达对象后，将存活对象移动到内存一端，消除碎片。 | 无碎片，内存连续           | 移动对象开销大，STW 时间长       |
+| 分代回收     | 按对象寿命分区（新生代 / 老年代），不同代采用不同回收策略。 | 高效利用 GC 时间，优化算法组合 | 实现复杂，需维护多代结构         |
+
+
+### 标记-清除流程
+
+1. 标记阶段：从根集出发，递归标记所有可达对象（通过UPROPERTY和强引用）
+2. 清除阶段：销毁未标记对象，释放内存
+3. 可选压缩：定期整理内存，减少碎片（但开销大，慎用）
+
+UObject:
+核心机制：
+  UPROPERTY宏：标记属性为强引用，GC 自动追踪。
+  TWeakObjectPtr：弱引用，不阻止对象被回收，用于打破循环。
+根集（Root Set）：全局变量、活动 Actor、加载的资产等。
+
+
+### TArray这些能自动回收吗
+
+不可以，看里面存的东西，特性都是取决于里面的东西xxx
+
 
 ### 骨骼动画空间坐标
 
