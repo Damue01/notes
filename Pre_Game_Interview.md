@@ -1496,18 +1496,18 @@ UE的实现过程是将该动画同时执行十几种压缩算法后的结果都
 
 主要对应三种Encode方式固定间隔插值，可变间隔插值，通道单独压缩格式
 
-固定间隔插值（Fixed Interval Sampling）
-  按预设时间步长（如 30FPS）均匀采样关键帧
-  中间帧通过线性插值生成
-  实现简单但可能存储冗余数据
-可变间隔插值（Adaptive Interval Sampling）
-  根据动画变化剧烈程度动态调整采样间隔
-  变化平缓区域拉大间隔，动作剧烈处加密采样
-  通过曲率分析自动识别关键帧位置
-通道单独压缩格式（Per-Channel Compression）
-  将 Position、Rotation、Scale 通道分离处理
-  针对各通道特性采用最佳编码策略
-  支持独立调整各通道的压缩精度
+1. 固定间隔插值（Fixed Interval Sampling）
+    按预设时间步长（如 30FPS）均匀采样关键帧
+    中间帧通过线性插值生成
+    实现简单但可能存储冗余数据
+2. 可变间隔插值（Adaptive Interval Sampling）
+    根据动画变化剧烈程度动态调整采样间隔
+    变化平缓区域拉大间隔，动作剧烈处加密采样
+    通过曲率分析自动识别关键帧位置
+3. 通道单独压缩格式（Per-Channel Compression）
+    将 Position、Rotation、Scale 通道分离处理
+    针对各通道特性采用最佳编码策略
+    支持独立调整各通道的压缩精度
 
 分通道压缩的逻辑：
 
