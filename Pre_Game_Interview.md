@@ -1134,6 +1134,42 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
         ```
 
       UE→Lua：通过luaDoString执行 Lua 代码，结果通过栈返回
+
+      ```cpp
+        // 获取属性（IdolAPI.Get(propName, inst)）
+        int NSIdol::NSClient::NSLua::CAPI::luaPropGet(lua_State* l) {
+            check(lua_isstring(l, 1));  // 第一个参数：属性名
+            check(lua_isuserdata(l, 2));  // 第二个参数：对象实例（UObject* 包装为 userdata）
+            
+            FString propName = lua_tostring(l, 1);
+            lua_remove(l, 1);  // 移除属性名，栈顶为实例
+            
+            // 查找属性写指令
+            auto it = mMemberTable.Find(propName);
+            check(it != nullptr);
+            CMemberReadInstruction& inst = mMemberReadInstructions[it->mReadIndex];
+            inst(l);  // 读取属性值并压入栈
+            
+            return 1;  // 返回 1 个值（属性值）
+        }
+
+        // 设置属性（IdolAPI.Set(propName, inst, value)）
+        int NSIdol::NSClient::NSLua::CAPI::luaPropSet(lua_State* l) {
+            check(lua_isstring(l, 1));  // 第一个参数：属性名
+            check(lua_isuserdata(l, 2));  // 第二个参数：对象实例
+            
+            FString propName = lua_tostring(l, 1);
+            lua_remove(l, 1);  // 移除属性名，栈顶为实例+新值
+            
+            auto it = mMemberTable.Find(propName);
+            check(it != nullptr);
+            CMemberWriteInstruction& inst = mMemberWriteInstructions[it->mWriteIndex];
+            inst(l);  // 设置属性值
+            
+            return 0;  // 无返回值
+        }
+      ```
+
   3. 资源管理：
       mCodes缓存 Lua 文件内容，mLoadedCode记录已加载文件
       析构函数shutdown释放 Lua 状态机及所有缓存数据
