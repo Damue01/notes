@@ -996,41 +996,41 @@ controller层：控制层，负责业务逻辑的处理；
 - `pairs`：遍历表中的所有键值对，包括非整数键（如字符串）。顺序不固定，适用于字典类型的表。
 - `ipairs`：仅遍历整数键（1, 2, 3...）的键值对，顺序固定，适用于数组类型的表。遍历到第一个 `nil` 时停止，不会继续遍历后面的元素。
 
-```lua
--- 示例代码
-local t = {a = 1, b = 2, c = 3}
-print("使用 pairs 遍历:")
-for k, v in pairs(t) do
-    print(k, v)  -- 输出所有键值对
-end
+      ```lua
+        -- 示例代码
+        local t = {a = 1, b = 2, c = 3}
+        print("使用 pairs 遍历:")
+        for k, v in pairs(t) do
+            print(k, v)  -- 输出所有键值对
+        end
 
--- 定义一个数组类型的表
-local array = {10, 20, 30, nil, 50}
-print("使用 ipairs 遍历:")
-for k, v in ipairs(array) do
-    print(k, v)  -- 仅输出整数键的键值对，遇到 nil 停止
-end
-```
+        -- 定义一个数组类型的表
+        local array = {10, 20, 30, nil, 50}
+        print("使用 ipairs 遍历:")
+        for k, v in ipairs(array) do
+            print(k, v)  -- 仅输出整数键的键值对，遇到 nil 停止
+        end
+      ```
 
 ## 5.3 :和.的区别
 
-```lua
--- 用 : 定义的方法会自动接收一个隐式的 self 参数，指向调用该方法的表（对象）本身。
--- 定义一个表（类似对象）
-local obj = {
-    value = 10
-}
+    ```lua
+      -- 用 : 定义的方法会自动接收一个隐式的 self 参数，指向调用该方法的表（对象）本身。
+      -- 定义一个表（类似对象）
+      local obj = {
+          value = 10
+      }
 
--- 用冒号定义方法（自动添加 self）
-function obj:printValue()
-    print(self.value) -- 通过 self 访问对象的属性
-end
+      -- 用冒号定义方法（自动添加 self）
+      function obj:printValue()
+          print(self.value) -- 通过 self 访问对象的属性
+      end
 
--- 等价于
-function obj.printValue(self)
-    print(self.value)
-end
-```
+      -- 等价于
+      function obj.printValue(self)
+          print(self.value)
+      end
+    ```
 
 ## 5.4 Lua使用metatable实现多态
 
