@@ -1040,7 +1040,7 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
 
 以下是元表实现方法调用多态的详细过程和示例：
 
-### **定义基类和元表**：
+### 定义基类和元表
 
    首先定义一个基类表，并设置其元表。基类表中的方法可以被继承，而元表中的 `__index` 元方法则负责在访问不存在的方法时进行查找。
 
@@ -1062,7 +1062,8 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
     setmetatable(Base, Base.mt)
     ```
 
-### **创建子类并继承基类**：
+### 创建子类并继承基类
+
    然后创建子类表，并将基类设置为子类的元表。子类可以重写基类中的方法，并且在调用方法时，Lua 会首先在子类中查找方法，如果找不到则会通过元表的 `__index` 元方法在基类中查找。
 
     ```lua
@@ -1085,7 +1086,7 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
     subObj:sayHello()  -- 输出: Hello from Sub
     ```
 
-### **更复杂的继承和多态示例**：
+### 更复杂的继承和多态示例
 
   可以有多层继承，并且子类可以调用基类的方法，实现更复杂的多态行为。
   就是设置metatable的时候，有写父类，调用的时候能直接调用父类的函数
@@ -1104,7 +1105,7 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
   subSubObj:callParentHello()  -- 输出: Hello from Sub
   ```
   
-## 5.5 **元表的 `__index` 元方法工作原理**
+## 5.5 元表的 `__index` 元方法工作原理
 
    首先，在表中查找，如果找到，返回该元素，找不到则继续
    > 调用 `subObj:sayHello()` 时，Lua 首先在 `Sub` 表中查找 `sayHello` 方法。由于 `Sub` 表中定义了 `sayHello` 方法，所以调用子类的方法。调用 `baseObj:sayHello()` 时，Lua 在 `Base` 表中查找 `sayHello` 方法，因为 `Base` 表中定义了 `sayHello` 方法，所以调用基类的方法。
@@ -1237,39 +1238,39 @@ Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不�
   ```
 
   ```cpp 读取属性 (IdolAPI.Get/IdolAPI.Set)
-  // 获取属性（IdolAPI.Get(propName, inst)）
-  int NSIdol::NSClient::NSLua::CAPI::luaPropGet(lua_State* l) {
-      check(lua_isstring(l, 1));  // 第一个参数：属性名
-      check(lua_isuserdata(l, 2));  // 第二个参数：对象实例（UObject* 包装为 userdata）
-      
-      FString propName = lua_tostring(l, 1);
-      lua_remove(l, 1);  // 移除属性名，栈顶为实例
-      
-      // 查找属性写指令
-      auto it = mMemberTable.Find(propName);
-      check(it != nullptr);
-      CMemberReadInstruction& inst = mMemberReadInstructions[it->mReadIndex];
-      inst(l);  // 读取属性值并压入栈
-      
-      return 1;  // 返回 1 个值（属性值）
-  }
+    // 获取属性（IdolAPI.Get(propName, inst)）
+    int NSIdol::NSClient::NSLua::CAPI::luaPropGet(lua_State* l) {
+        check(lua_isstring(l, 1));  // 第一个参数：属性名
+        check(lua_isuserdata(l, 2));  // 第二个参数：对象实例（UObject* 包装为 userdata）
+        
+        FString propName = lua_tostring(l, 1);
+        lua_remove(l, 1);  // 移除属性名，栈顶为实例
+        
+        // 查找属性写指令
+        auto it = mMemberTable.Find(propName);
+        check(it != nullptr);
+        CMemberReadInstruction& inst = mMemberReadInstructions[it->mReadIndex];
+        inst(l);  // 读取属性值并压入栈
+        
+        return 1;  // 返回 1 个值（属性值）
+    }
 
-  // 设置属性（IdolAPI.Set(propName, inst, value)）
-  int NSIdol::NSClient::NSLua::CAPI::luaPropSet(lua_State* l) {
-      check(lua_isstring(l, 1));  // 第一个参数：属性名
-      check(lua_isuserdata(l, 2));  // 第二个参数：对象实例
-      
-      FString propName = lua_tostring(l, 1);
-      lua_remove(l, 1);  // 移除属性名，栈顶为实例+新值
-      
-      auto it = mMemberTable.Find(propName);
-      check(it != nullptr);
-      CMemberWriteInstruction& inst = mMemberWriteInstructions[it->mWriteIndex];
-      inst(l);  // 设置属性值
-      
-      return 0;  // 无返回值
-  }
-```
+    // 设置属性（IdolAPI.Set(propName, inst, value)）
+    int NSIdol::NSClient::NSLua::CAPI::luaPropSet(lua_State* l) {
+        check(lua_isstring(l, 1));  // 第一个参数：属性名
+        check(lua_isuserdata(l, 2));  // 第二个参数：对象实例
+        
+        FString propName = lua_tostring(l, 1);
+        lua_remove(l, 1);  // 移除属性名，栈顶为实例+新值
+        
+        auto it = mMemberTable.Find(propName);
+        check(it != nullptr);
+        CMemberWriteInstruction& inst = mMemberWriteInstructions[it->mWriteIndex];
+        inst(l);  // 设置属性值
+        
+        return 0;  // 无返回值
+    }
+  ```
 
 #### UE→Lua：通过luaDoString执行 Lua 代码，结果通过栈返回
 
