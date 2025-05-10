@@ -81,15 +81,12 @@ Actor 通信的一种方式
 
 1. 为角色添加 AbilitySystem
 2. 创建 GA 蓝图，继承自 Gameplay Ability，在里面实现能力
-
    1. Event ActivateAbility，激活时就会触发
    2. GA 里获得 character 用 Get Avatar Actor from Actor Info
    3. 最后别忘了 End Ability
 3. 角色蓝图中，别忘了 Give Ability
-
    1. 用添加的 AbilitySystem，调用 Give Ability 节点，激活对应的 Ability Class/xx/xx
 4. 在该实现功能的地方，调用 Try Activate Ability/ by Class/ by Tag
-
    1. 使用 Get player character 去调用 Get Ability System Component（因为挂载到了角色身上）
 
 #### Gameplay Tags
@@ -106,13 +103,11 @@ Actor 通信的一种方式
 1. 先去创建一个 Tag
 2. 创建新蓝图，继承自 Gameplay Effect
 3. 配置效果 Details 面板，以着火为例  （这一块更新了很多，用的时候看一下源码）
-
    1. 设置 Duration Policy 为 Has Duration
    2. 设置 Magnitude Calculation Type 为 Scalable Float，值为 5
    3. 设置 Target Tags(Granted to Actor)为 Target Tags Gameplay Effect Component (Actually grants the tags to the actor that has the gameplay effect)
    4. 设置 Added 里的标签
 4. 将着火效果应用到应该激活的目标上
-
    1. 想要使用 Ability System 的物体自身必须带有一个 Ability System Component
    2. 获取目标物体的 Ability System Component
    3. 调用 ApplyGameplayEffectToSelf，配置传入的 GE Class 等参数，可以使用 Effect Content 实现高级效果
@@ -137,7 +132,6 @@ Actor 通信的一种方式
 
 1. 新建一个蓝图，继承自 GameplayCueNotify_Actor
 2. 设置效果，以粒子效果为例
-
    1. 添加一个 Niagara Component
    2. 配置对应的 Niagara 效果
    3. 在 Gameplay Cue Tag 里新建 tag（used to link our gameplay effect to this queue)
