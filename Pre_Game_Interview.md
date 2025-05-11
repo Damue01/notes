@@ -266,7 +266,7 @@ lua中的多态主要体现在函数和方法的调用上，通过不同的参�
 
   （2）unique_ptr，保证同一时间段内只有一个智能指针能指向该对象（可通过move操作来传递unique_ptr）；
 
-  （3）weak_ptr，用来解决shared_ptr相互引用时的死锁问题，如果说两个shared_ptr相互引用,那么这两个指针的引用计数永远不可能下降为0,资源永远不会释放。
+  （3）weak_ptr，用来解决shared_ptr相互引用时的死锁问题，如果说两个shared_ptr相互引用,那么这两个指针的引用计数永远不可能下降为0,资源永远不会释放。这个我之前做角色的时候就遇到过Actor和Component循环引用，后面吧component里对于owner的引用换成weak_ptr就好了
       而weak ptr是对对象的一种弱引用，不会增加对象的引用计数，所以当原先两个shared ptr死锁的时候，用它替换掉其中一个shared ptr，就能够避免掉引用技术无法下降到0的情况了。
       他和shared_ptr之间可以相互转化，shared_ptr可以直接赋值给它，它可以通过调用lock函数来获得shared_ptr，然后再用reset释放掉
 
