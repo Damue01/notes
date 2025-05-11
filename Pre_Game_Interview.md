@@ -40,7 +40,7 @@ description: 基础知识
 
 ### lua通过metatable实现多态
 
-* [## 5.4 Lua使用metatable实现多态](# 5.4 Lua使用metatable实现多态)
+  * [Lua使用metatable实现多态](#5.4 Lua使用metatable实现多态)
 
 metatable是lua中一个特殊的表，用于实现对象的行为和属性的重载。
 通过设置metatable，可以定义对象的行为，比如加法、减法等操作符的重载，以及方法的调用等。
@@ -1049,6 +1049,8 @@ controller层：控制层，负责业务逻辑的处理；
     ```
 
 ## 5.4 Lua使用metatable实现多态
+
+<div id="1" >Lua使用metatable实现多态</div>
 
 Lua 利用元表和 __index 元方法实现了方法调用的多态，使得不同类的对象在调用相同名称的方法时，可以根据对象的类型执行不同的操作。
 
