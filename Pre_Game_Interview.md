@@ -676,9 +676,40 @@ lua中的多态主要体现在函数和方法的调用上，通过不同的参�
 
 ### 钻石(菱形)继承存在什么问题，如何解决？
 
-  【参考资料】：C++之钻石问题和解决方案（菱形继承问题）_Benson的专栏-CSDN博客https://www.cnblogs.com/yunlambert/p/9876491.html、C++：钻石继承与虚继承 - Tom文星 - 博客园 (cnblogs.com)https://blog.csdn.net/u012658346/article/details/50775742
+菱形继承是一个类似菱形的继承结构。
+首先是一个公共基类，被两个中间类继承，最后这两个中间类又共同派生出一个最终子类。
 
-  答：会存在二义性的问题，因为两个父类会对公共基类的数据和方法产生一份拷贝，因此对于子类来说读写一个公共基类的数据或调用一个方法时，不知道是哪一个父类的数据和方法，也会导致编译错误。可以采用虚继承的方法解决这个问题(父类继承公共基类时用virtual修饰)，这样就只会创造一份公共基类的实例，不会造成二义性。
+```plaintext
+    Base
+  /   \
+  /     \
+Derived1 Derived2
+  \       /
+  \     /
+  FinalDerived
+```
+
+```cpp
+  class Base {
+  public:
+      int value; // 公共基类成员
+  };
+
+  class Derived1 : public Base {};
+  class Derived2 : public Base {};
+
+  class FinalDerived : public Derived1, public Derived2 {};
+```
+
+菱形结构导致的问题
+
+1. 内存浪费，没份基类成员都会占用内存空间，最终子类里面会有两份基类，导致内存冗余
+2. 二义性，由于中间类各自继承了一份Base成员，最终类会间接继承两份Base基类，当我们用最终子类去访问Base类成员的时候，编译器无法确定是哪一份，导致二义性错误。
+
+```cpp
+  FinalDerived obj;
+  obj.value = 10; // 编译错误！无法确定是 Derived1::Base::value 还是 Derived2::Base::value
+```
 
 ## 1.3 内存管理（内存分配、内存对齐）
 
