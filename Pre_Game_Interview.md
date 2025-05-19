@@ -1063,10 +1063,10 @@ set/map，底层是红黑树，插入不会影响其他迭代器，删除也只�
   2. 页表（Page Table）：
     每个进程维护一张页表，记录逻辑页号（VPN）到物理帧号（PFN）的映射，支持 虚拟地址到物理地址的转换：
 
-    ```plaintext
-      虚拟地址 = 页号（VPN） + 页内偏移（Offset）  
-      物理地址 = 帧号（PFN） + 页内偏移（Offset）
-    ```
+  ```plaintext
+    虚拟地址 = 页号（VPN） + 页内偏移（Offset）  
+    物理地址 = 帧号（PFN） + 页内偏移（Offset）
+  ```
 
   快表（TLB，Translation Lookaside Buffer）：
     缓存最近使用的页表项，加速地址转换（命中率达 90% 以上）。
