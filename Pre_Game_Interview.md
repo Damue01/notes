@@ -1097,6 +1097,8 @@ lua中的多态主要体现在函数和方法的调用上，通过不同的参�
 
   （5）TCP有拥塞控制机制，UDP没有。
 
+
+
 # LUA和其他问题
 
 ## 5.1 csv和xlsx的区别？
@@ -1847,6 +1849,10 @@ std::copy_n(src.begin(), int n, dest.begin())；
 **UE/Lua 实例**：  
 
 - **UE**：UI 开发中的 **UMG + ViewModel**，例如 `UMyHUD`（View）绑定 `FPlayerViewModel`（Model），通过 `UController` 处理输入逻辑，数据变化自动同步到界面。  
+
+## 6.11 DS服务器（专用服务器）（Dedicated Server）
+
+
 
 # 引擎相关问题
 
