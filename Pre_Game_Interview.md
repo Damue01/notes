@@ -676,7 +676,8 @@ lua中的多态主要体现在函数和方法的调用上，通过不同的参�
 
 ### 钻石(菱形)继承存在什么问题，如何解决？
 
-菱形继承是一个类似菱形的继承结构。
+#### 菱形继承是什么？一个类似菱形的继承结构
+
 首先是一个公共基类，被两个中间类继承，最后这两个中间类又共同派生出一个最终子类。
 
 ```plaintext
@@ -701,7 +702,7 @@ Derived1 Derived2
   class FinalDerived : public Derived1, public Derived2 {};
 ```
 
-菱形结构导致的问题
+#### 菱形结构导致的问题
 
 1. 内存浪费，没份基类成员都会占用内存空间，最终子类里面会有两份基类，导致内存冗余
 2. 二义性，由于中间类各自继承了一份Base成员，最终类会间接继承两份Base基类，当我们用最终子类去访问Base类成员的时候，编译器无法确定是哪一份，导致二义性错误。
@@ -710,6 +711,34 @@ Derived1 Derived2
   FinalDerived obj;
   obj.value = 10; // 编译错误！无法确定是 Derived1::Base::value 还是 Derived2::Base::value
 ```
+
+#### 解决菱形继承的办法
+
+使用虚继承，为中间类添加virtual关键字，让公共基类在内存里只保留一份实例。
+
+```cpp
+class Base {
+public:
+    int value;
+};
+
+// 使用虚继承声明中间类
+class Derived1 : virtual public Base {};
+class Derived2 : virtual public Base {};
+
+class FinalDerived : public Derived1, public Derived2 {};
+```
+
+虚继承解决二义性的原理：
+通过引入 vbptr 和虚基类表，**让所有派生类共享同一个基类实例**，无论通过哪个派生类路径访问基类成员，最终都指向同一个内存地址，从而消除二义性。
+
+访问基类成员的过程：
+
+1. 当FinalDerived对象访问value时，先通过Derived1的vbptr找到vbtable，获取Base的偏移量X。
+2. 根据Derived1在FinalDerived中的内存起始地址（假设为addr），计算Base的实际地址：addr + X。
+3. 同理，通过Derived2的vbptr计算出的Base地址与上述结果一致，确保访问的是同一实例。
+
+基类无需标记：基类是被继承的对象，它无法预知自己是否会成为菱形继承中的公共基类。虚继承的关键是中间类在继承基类时主动声明 “未来可能需要共享此基类”，而非基类自身做任何修改。
 
 ## 1.3 内存管理（内存分配、内存对齐）
 
