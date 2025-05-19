@@ -1852,7 +1852,11 @@ std::copy_n(src.begin(), int n, dest.begin())；
 
 ## 6.11 DS服务器（专用服务器）（Dedicated Server）
 
+## 6.12 Overlap和SweepTest
 
+overlap检测两个或多个碰撞体是否相交
+
+SweepTest模拟一个碰撞体起点到终点的移动过程，检测移动路径上是否与其他物体发生碰撞
 
 # 引擎相关问题
 
